@@ -98,7 +98,7 @@ def startSeason():
                     index = lastNames.index(name)
                     drivers[index] += sprint_points[i]
                 round += 1
-                check = input("Would you like to view standings right now: ")
+                check = input("Would you like to view the standings? ")
                 if check == "yes":
                     checkStandings()
                 break
