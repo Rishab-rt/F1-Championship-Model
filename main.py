@@ -62,7 +62,7 @@ def checkStandings():
         for i in range(20):
             print(standings[i])
         print()
-        again = input("Would you like to checkout the constructors championship?: ")
+        again = input("Would you like to view the constructors championship?: ")
         if again == "yes":
             constructor_points = calculate_constructor_points()
             constructors = list(constructor_points.items())
@@ -76,12 +76,12 @@ def checkStandings():
         for i in range(10):
             print(constructors[i])
         print()
-        again = input("Would you like to checkout the drivers championship?: ")
+        again = input("Would you like to view the drivers championship?: ")
         if again == "yes":
             standings = list(zip(lastNames,drivers))
             standings.sort(key=lambda x: x[1], reverse=True)
             for i in range(20):
-                print(standings[i])
+                print(": ".join(standings[i]))
 
 def startSeason():
     print("WELCOME TO THE 2024 FORMULA ONE SEASON")
