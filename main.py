@@ -54,34 +54,33 @@ def calculate_constructor_points():
         constructor_points[team] += drivers[i]
     return constructor_points
 
+def printWDC():
+    standings = list(zip(lastNames,drivers))
+    standings.sort(key=lambda x: x[1], reverse=True)
+    for i in range(20):
+        print(standings[i])
+    print()
+
+def printWCC():
+    constructor_points = calculate_constructor_points()
+    constructors = list(constructor_points.items())
+    constructors.sort(key=lambda x: x[1], reverse=True)
+    for i in range(10):
+        print(constructors[i])
+
+
 def checkStandings():
     which = input("WDC or WCC?: ")
     if which == "WDC":
-        standings = list(zip(lastNames,drivers))
-        standings.sort(key=lambda x: x[1], reverse=True)
-        for i in range(20):
-            print(standings[i])
-        print()
+        printWDC()
         again = input("Would you like to view the constructors championship?: ")
         if again == "yes":
-            constructor_points = calculate_constructor_points()
-            constructors = list(constructor_points.items())
-            constructors.sort(key=lambda x: x[1], reverse=True)
-            for i in range(10):
-                print(constructors[i])
+            printWCC()
     else:
-        constructor_points = calculate_constructor_points()
-        constructors = list(constructor_points.items())
-        constructors.sort(key=lambda x: x[1], reverse=True)
-        for i in range(10):
-            print(constructors[i])
-        print()
+        printWCC()
         again = input("Would you like to view the drivers championship?: ")
         if again == "yes":
-            standings = list(zip(lastNames,drivers))
-            standings.sort(key=lambda x: x[1], reverse=True)
-            for i in range(20):
-                print(": ".join(standings[i]))
+            printWDC()
 
 def startSeason():
     print("WELCOME TO THE 2024 FORMULA ONE SEASON")
