@@ -49,8 +49,6 @@ def calculate_constructor_points():
     for i in range(len(lastNames)):
         name = lastNames[i]
         team = driver_to_team[name]
-        if team not in constructor_points:
-            constructor_points[team] = 0
         constructor_points[team] += drivers[i]
     return constructor_points
 
