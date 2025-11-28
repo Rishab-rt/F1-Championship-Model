@@ -108,6 +108,8 @@ def startSeason():
                 check = input("Would you like to view the standings? ")
                 if check.lower() == "yes":
                     checkStandings()
+                time.sleep(5)
+                os.system('clear')
                 continue
             else:
                 for i in range(len(points)):
@@ -123,6 +125,8 @@ def startSeason():
                 check = input("Would you like to view standings right now: ")
                 if check == "yes":
                     checkStandings()
+                time.sleep(5)
+                os.system('clear')
                 break
         if round == 30:
             break
