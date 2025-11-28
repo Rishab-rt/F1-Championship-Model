@@ -62,12 +62,3 @@ At launch, the simulator walks the user through the 2024 F1 calendar:
 | 6th      | 3      |
 | 7th      | 2      |
 | 8th      | 1      |
-
----
-
-## 🚀 How to Run the Project
-Remix the app on [here](https://replit.com/@rtalusani07/F1-2025-Calculator#main.py)
-
-### ✅ Requirements:
-- Python 3.x
-- A terminal or command-line environment
