@@ -1,3 +1,6 @@
+import time
+import os
+
 LEC = 0
 HAM = 0
 PIA = 0
@@ -49,6 +52,8 @@ def calculate_constructor_points():
     for i in range(len(lastNames)):
         name = lastNames[i]
         team = driver_to_team[name]
+        if team not in constructor_points:
+            constructor_points[team] = 0
         constructor_points[team] += drivers[i]
     return constructor_points
 
@@ -66,7 +71,6 @@ def printWCC():
     for i in range(10):
         print(constructors[i])
 
-
 def checkStandings():
     which = input("WDC or WCC?: ")
     if which == "WDC":
@@ -74,14 +78,14 @@ def checkStandings():
         again = input("Would you like to view the constructors championship?: ")
         if again == "yes":
             printWCC()
-    else:
+    elif which == "WCC":
         printWCC()
         again = input("Would you like to view the drivers championship?: ")
         if again == "yes":
             printWDC()
 
 def startSeason():
-    print("WELCOME TO THE 2024 FORMULA ONE SEASON")
+    print("WELCOME TO THE 2025 FORMULA ONE SEASON")
     round = 0
     while round < 31:
         points = [25,18,15,12,10,8,6,4,2,1]
@@ -90,20 +94,31 @@ def startSeason():
             print("Hello and Welcome to the",races[round])
             if "Sprint" in races[round]:
                 sprint_points = [8,7,6,5,4,3,2,1]
-                for i in range(8):
-                    name = input(f"Who finished sprint in position {i+1}: ")
-                    index = lastNames.index(name)
-                    drivers[index] += sprint_points[i]
+                for i in range(len(sprint_points)):
+                    while True:
+                        name = input(f"Who finished sprint in position {i+1}: ")
+                        if name not in lastNames:
+                            print("Seems like you entered a driver who doesnt exist, please try again!!!")
+                            continue
+                        index = lastNames.index(name)
+                        drivers[index] += sprint_points[i]
+                        break
+                continue
                 round += 1
                 check = input("Would you like to view the standings? ")
-                if check == "yes":
+                if check.lower() == "yes":
                     checkStandings()
-                break
+                continue
             else:
-                for i in range(10):
+                for i in range(len(points)):
                     name = input(f"Who finished race in position {i+1}: ")
+                    if name not in lastNames:
+                        print("Seems like you entered a driver who doesnt exist, please try again!!!")
+                        continue
                     index = lastNames.index(name)
                     drivers[index] += points[i]
+                    break
+                continue
                 round += 1
                 check = input("Would you like to view standings right now: ")
                 if check == "yes":
