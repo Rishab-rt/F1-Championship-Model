@@ -87,49 +87,49 @@ def checkStandings():
 def startSeason():
     print("WELCOME TO THE 2025 FORMULA ONE SEASON")
     round = 0
-    while round < 31:
+    while round < len(races):
         points = [25,18,15,12,10,8,6,4,2,1]
+        sprint_points = [8,7,6,5,4,3,2,1]
         print()
-        while True:
-            print("Hello and Welcome to the",races[round])
-            if "Sprint" in races[round]:
-                sprint_points = [8,7,6,5,4,3,2,1]
-                for i in range(len(sprint_points)):
-                    while True:
-                        name = input(f"Who finished sprint in position {i+1}: ")
-                        if name not in lastNames:
-                            print("Seems like you entered a driver who doesnt exist, please try again!!!")
-                            continue
-                        index = lastNames.index(name)
-                        drivers[index] += sprint_points[i]
-                        break
-                continue
-                round += 1
-                check = input("Would you like to view the standings? ")
-                if check.lower() == "yes":
-                    checkStandings()
-                time.sleep(5)
-                os.system('clear')
-                continue
-            else:
-                for i in range(len(points)):
-                    name = input(f"Who finished race in position {i+1}: ")
+        print("Hello and Welcome to the",races[round])
+
+        if "Sprint" in races[round]:
+            for i in range(len(sprint_points)):
+                while True:
+                    name = input(f"Who finished sprint in position {i+1}: ")
                     if name not in lastNames:
                         print("Seems like you entered a driver who doesnt exist, please try again!!!")
                         continue
                     index = lastNames.index(name)
-                    drivers[index] += points[i]
+                    drivers[index] += sprint_points[i]
                     break
-                continue
-                round += 1
-                check = input("Would you like to view standings right now: ")
-                if check == "yes":
-                    checkStandings()
-                time.sleep(5)
-                os.system('clear')
+
+            round += 1
+            check = input("Would you like to view the standings? ")
+            if check.lower() == "yes":
+                checkStandings()
+            time.sleep(5)
+            os.system('clear')
+            continue
+
+        for i in range(len(points)):
+            while True:
+                name = input(f"Who finished race in position {i+1}: ")
+                if name not in lastNames:
+                    print("Seems like you entered a driver who doesnt exist, please try again!!!")
+                    continue
+                index = lastNames.index(name)
+                drivers[index] += points[i]
                 break
-        if round == 30:
-            break
+               
+        round += 1
+        check = input("Would you like to view standings right now: ")
+        if check == "yes":
+            checkStandings()
+        time.sleep(5)
+        os.system('clear')
+        
+
     print("Season Finished.")
     checkStandings()
     print()
