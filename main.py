@@ -51,10 +51,13 @@ driver_to_team = {
 }
 
 def calculate_constructor_points():
+    driver_points = np.array(drivers)
     constructor_points = {}
-    for team in set(teams):
-        team_indices = [i for i, t in enumerate(teams) if t == team]
-        constructor_points[team] = drivers[team_indices].sum()
+
+    for i, name in enumerate(lastNames):
+        team = driver_to_team[name]
+        constructor_points[team] = constructor_points.get(team, 0) + int(driver_points[i])
+
     return constructor_points
 
 def printWDC():
