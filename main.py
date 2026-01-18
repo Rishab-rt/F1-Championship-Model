@@ -1,5 +1,6 @@
 import time
 import os
+import numpy as np
 
 LEC = 0
 HAM = 0
@@ -24,7 +25,9 @@ DOO = 0
 
 lastNames = ["Leclerc","Hamilton","Piastri","Norris","Russel","Antonelli","Verstappen","Tsunoda","Albon","Sainz",
              "Alonso","Stroll","Ocon","Bearman","Hadjar","Lawson","Hulkenberg","Bortoleto","Gasly","Doohan"]
-drivers = [LEC,HAM,PIA,NOR,RUS,ANT,VER,TSU,ALB,SAI,ALO,STR,OCO,BEA,HAD,LAW,HUL,BOR,GAS,DOO]
+
+drivers = np.zeros(len(lastNames), dtype=int)
+
 teams = ["Ferrari","McLaren","Mercedes","Red Bull","Williams","Aston Martin","Haas","Vcarb","Kick Sauber","Alpine"]
 points = [25,18,15,12,10,8,6,4,2,1]
 races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanase Grand Prix","Bahrain Grand Prix","Saudi Grand Prix",
@@ -49,12 +52,9 @@ driver_to_team = {
 
 def calculate_constructor_points():
     constructor_points = {}
-    for i in range(len(lastNames)):
-        name = lastNames[i]
-        team = driver_to_team[name]
-        if team not in constructor_points:
-            constructor_points[team] = 0
-        constructor_points[team] += drivers[i]
+    for team in set(teams):
+        team_indices = [i for i, t in enumerate(teams) if t == team]
+        constructor_points[team] = drivers[team_indices].sum()
     return constructor_points
 
 def printWDC():
