@@ -14,14 +14,14 @@ races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanase G
 driver_to_team = {
     "Leclerc": "Ferrari", "Hamilton": "Ferrari",
     "Piastri": "McLaren", "Norris": "McLaren",
-    "Russel": "Mercedes", "Antonelli": "Mercedes",
-    "Verstappen": "Red Bull", "Tsunoda": "Red Bull",
+    "Russell": "Mercedes", "Antonelli": "Mercedes",
+    "Verstappen": "Red Bull", "Hadjar": "Red Bull",
     "Sainz": "Williams", "Albon": "Williams",
     "Alonso": "Aston Martin", "Stroll": "Aston Martin",
     "Ocon": "Haas", "Bearman": "Haas",
-    "Hadjar": "Vcarb", "Lawson": "Vcarb",
-    "Hulkenberg": "Kick Sauber", "Bortoleto": "Kick Sauber",
-    "Gasly": "Alpine", "Doohan": "Alpine"
+    "Linblad": "Vcarb", "Lawson": "Vcarb",
+    "Hulkenberg": "Audi", "Bortoleto": "Audi",
+    "Gasly": "Alpine", "Colapinto": "Alpine","Perez":"Cadillac","Bottas":"Cadillac"
 }
 
 df_standings = pd.DataFrame(list(driver_to_team.items()), columns=["Driver", "Team"])
