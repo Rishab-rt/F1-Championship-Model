@@ -2,14 +2,14 @@ import time
 import os
 import pandas as pd
 
-points = [25,18,15,12,10,8,6,4,2,1]
-races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanese Grand Prix",
-         "Miami Sprint","Miami Grand Prix","Canada Sprint","Canadian Grand Prix","Monaco Grand Prix",
-         "Spanish Grand Prix", "Emilia Rogmana Grand Prix","Monaco Grand Prix","Spanish Grand Prix",
-         "Austrian Grand Prix","Silverstone Sprint","British Grand Prix", "Belgian Grand Prix - SPA",
-         "Hungarian Grand Prix","Dutch Sprint","Dutch Grand Prix","Italian Grand Prix", "Spanish Grand Prix", 
-         "Azerbaijan Grand Prix", "Singapore Sprint", "Singaporean Grand Prix","Circuit of Americas Grand Prix",
-         "Mexican Grand Prix","São Paulo Grand Prix","Las Vegas Grand Prix","Qatar Grand Prix", "Abu Dhabi Grand Prix"]
+races = ["Australian Grand Prix", "China Sprint", "Chinese Grand Prix", "Japanese Grand Prix", 
+         "Miami Sprint", "Miami Grand Prix", "Canada Sprint", "Canadian Grand Prix", 
+         "Monaco Grand Prix", "Spanish Grand Prix", "Austrian Grand Prix", "Silverstone Sprint",
+         "British Grand Prix", "Belgian Grand Prix - SPA", "Hungarian Grand Prix", "Dutch Sprint", 
+         "Dutch Grand Prix", "Italian Grand Prix", "Madrid Grand Prix", "Azerbaijan Grand Prix", 
+         "Singapore Sprint", "Singapore Grand Prix", "Circuit of Americas Grand Prix", "Mexican Grand Prix", 
+         "São Paulo Grand Prix", "Las Vegas Grand Prix", "Qatar Grand Prix", "Abu Dhabi Grand Prix"]
+
 driver_to_team = {
     "Leclerc": "Ferrari", "Hamilton": "Ferrari",
     "Piastri": "McLaren", "Norris": "McLaren",
@@ -20,7 +20,8 @@ driver_to_team = {
     "Ocon": "Haas", "Bearman": "Haas",
     "Linblad": "Vcarb", "Lawson": "Vcarb",
     "Hulkenberg": "Audi", "Bortoleto": "Audi",
-    "Gasly": "Alpine", "Colapinto": "Alpine","Perez":"Cadillac","Bottas":"Cadillac"
+    "Gasly": "Alpine", "Colapinto": "Alpine",
+    "Perez":"Cadillac","Bottas":"Cadillac"
 }
 
 df_standings = pd.DataFrame(list(driver_to_team.items()), columns=["Driver", "Team"])
