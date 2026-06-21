@@ -27,42 +27,30 @@ driver_to_team = {
 df_standings = pd.DataFrame(list(driver_to_team.items)),columns = ["Drivers","Teams"]
 df_standings["Points"] = 0
 
-
-def calculate_constructor_points():
-    driver_points = np.array(drivers)
-    constructor_points = {}
-
-    for i, name in enumerate(lastNames):
-        team = driver_to_team[name]
-        constructor_points[team] = constructor_points.get(team, 0) + int(driver_points[i])
-
-    return constructor_points
-
-def printWDC():
-    standings = list(zip(lastNames,drivers))
-    standings.sort(key=lambda x: x[1], reverse=True)
-    for i in range(20):
-        print(standings[i])
+def printWCC():
+    print("\n\t CONSTRUCTORS' CHAMPIONSHIP STANDING ")
+    wcc = df_standings.groupby("Team")["Points"].sum().reset_index()
+    wcc = wcc.sort_values(by="Points", ascending=False).reset_index(drop=True)
+    wcc.index += 1
+    print(wcc)
     print()
 
-def printWCC():
-    constructor_points = calculate_constructor_points()
-    constructors = list(constructor_points.items())
-    constructors.sort(key=lambda x: x[1], reverse=True)
-    for i in range(10):
-        print(constructors[i])
+def printWDC():
+    print("\n--- WORLD DRIVERS' CHAMPIONSHIP ---")
+    wdc = df_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
+    wdc.index += 1
+    print(wdc[["Driver", "Points"]])
+    print()
 
 def checkStandings():
-    which = input("WDC or WCC?: ")
+    which = input("WDC or WCC?: ").upper().strip()
     if which == "WDC":
         printWDC()
-        again = input("Would you like to view the constructors championship?: ")
-        if again == "yes":
+        if input("Would you like to view the constructors championship? (yes/no): ").lower().strip() == "yes":
             printWCC()
     elif which == "WCC":
         printWCC()
-        again = input("Would you like to view the drivers championship?: ")
-        if again == "yes":
+        if input("Would you like to view the drivers championship? (yes/no): ").lower().strip() == "yes":
             printWDC()
 
 def startSeason():
