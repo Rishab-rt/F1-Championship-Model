@@ -10,7 +10,7 @@ Built with modular logic and real-world accuracy, this project reflects official
 
 ## 📌 Key Features
 
-- 🏁 **Simulate all 31 official 2024 F1 events** — including Sprints and GPs
+- 🏁 **Simulate all 31 official 2026 F1 events** — including Sprints and GPs
 - 🎯 **Points system based on real F1 rules** (25–18–15… for GPs; 8–7–6… for Sprints)
 - 👥 **20 drivers** mapped to **10 constructor teams**
 - 📊 Real-time standings updates for both WDC and WCC
