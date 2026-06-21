@@ -4,13 +4,13 @@ import numpy as np
 import pandas as pd
 
 points = [25,18,15,12,10,8,6,4,2,1]
-races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanase Grand Prix","Bahrain Grand Prix","Saudi Grand Prix",
-         "Miami Sprint","Miami Grand Prix","Emilia Rogmana Grand Prix","Monaco Grand Prix","Spanish Grand Prix",
-         "Canadian Grand Prix","Austrian Grand Prix","British Grand Prix","Belgian Sprint","Belgian Grand Prix",
-         "Hungarian Grand Prix","Dutch Grand Prix","Italian Grand Prix","Azerbaijanian Grand Prix","Singaporean Grand Prix",
-         "COTA Sprint","American Grand Prix","Mexican Grand Prix","Brazil Sprint","Sao Paolo Grand Prix","Vegas Grand Prix",
-         "Qatar Sprint","Qatar Grand Prix","Abu Dhabi Grand Prix"]
-
+races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanese Grand Prix",
+         "Miami Sprint","Miami Grand Prix","Canada Sprint","Canadian Grand Prix","Monaco Grand Prix",
+         "Spanish Grand Prix", "Emilia Rogmana Grand Prix","Monaco Grand Prix","Spanish Grand Prix",
+         "Austrian Grand Prix","Silverstone Sprint","British Grand Prix", "Belgian Grand Prix - SPA",
+         "Hungarian Grand Prix","Dutch Sprint","Dutch Grand Prix","Italian Grand Prix", "Spanish Grand Prix", 
+         "Azerbaijan Grand Prix", "Singapore Sprint", "Singaporean Grand Prix","Circuit of Americas Grand Prix",
+         "Mexican Grand Prix","São Paulo Grand Prix","Las Vegas Grand Prix","Qatar Grand Prix", "Abu Dhabi Grand Prix"
 driver_to_team = {
     "Leclerc": "Ferrari", "Hamilton": "Ferrari",
     "Piastri": "McLaren", "Norris": "McLaren",
@@ -54,7 +54,7 @@ def checkStandings():
             printWDC()
 
 def startSeason():
-    print("WELCOME TO THE 2025 FORMULA ONE SEASON")
+    print("WELCOME TO THE 2026 FORMULA ONE SEASON")
     
     for current_race in races:
         print(f"\nHello and Welcome to the {current_race}")
