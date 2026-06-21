@@ -1,6 +1,5 @@
 import time
 import os
-import numpy as np
 import pandas as pd
 
 points = [25,18,15,12,10,8,6,4,2,1]
