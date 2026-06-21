@@ -1,34 +1,8 @@
 import time
 import os
 import numpy as np
+import pandas as pd
 
-LEC = 0
-HAM = 0
-PIA = 0
-NOR = 0
-RUS = 0
-ANT = 0
-VER = 0
-TSU = 0
-ALB = 0
-SAI = 0
-ALO = 0
-STR = 0
-OCO = 0
-BEA = 0
-HAD = 0
-LAW = 0
-HUL = 0
-BOR = 0
-GAS = 0
-DOO = 0
-
-lastNames = ["Leclerc","Hamilton","Piastri","Norris","Russel","Antonelli","Verstappen","Tsunoda","Albon","Sainz",
-             "Alonso","Stroll","Ocon","Bearman","Hadjar","Lawson","Hulkenberg","Bortoleto","Gasly","Doohan"]
-
-drivers = np.zeros(len(lastNames), dtype=int)
-
-teams = ["Ferrari","McLaren","Mercedes","Red Bull","Williams","Aston Martin","Haas","Vcarb","Kick Sauber","Alpine"]
 points = [25,18,15,12,10,8,6,4,2,1]
 races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanase Grand Prix","Bahrain Grand Prix","Saudi Grand Prix",
          "Miami Sprint","Miami Grand Prix","Emilia Rogmana Grand Prix","Monaco Grand Prix","Spanish Grand Prix",
@@ -49,6 +23,10 @@ driver_to_team = {
     "Hulkenberg": "Kick Sauber", "Bortoleto": "Kick Sauber",
     "Gasly": "Alpine", "Doohan": "Alpine"
 }
+
+df_standings = pd.DataFrame(list(driver_to_team.items)),columns = ["Drivers","Teams"]
+df_standings["Points"] = 0
+
 
 def calculate_constructor_points():
     driver_points = np.array(drivers)
