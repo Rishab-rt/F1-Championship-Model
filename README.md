@@ -1,6 +1,6 @@
 # F1-Championship-Calculator
 
-# 🏎️ Formula 1 2024 Championship Simulator
+# 🏎️ Formula 1 2026 Championship Simulator
 
 A fully interactive, command-line Python simulation that recreates the 2024 Formula 1 season, round by round. This tool lets you manually input finishing positions for each race and sprint, calculate and update **Driver (WDC)** and **Constructor (WCC)** standings, and view dynamic rankings after each round.
 
