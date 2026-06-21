@@ -10,7 +10,7 @@ races = ["Australian Grand Prix","China Sprint","Chinese Grand Prix","Japanese G
          "Austrian Grand Prix","Silverstone Sprint","British Grand Prix", "Belgian Grand Prix - SPA",
          "Hungarian Grand Prix","Dutch Sprint","Dutch Grand Prix","Italian Grand Prix", "Spanish Grand Prix", 
          "Azerbaijan Grand Prix", "Singapore Sprint", "Singaporean Grand Prix","Circuit of Americas Grand Prix",
-         "Mexican Grand Prix","São Paulo Grand Prix","Las Vegas Grand Prix","Qatar Grand Prix", "Abu Dhabi Grand Prix"
+         "Mexican Grand Prix","São Paulo Grand Prix","Las Vegas Grand Prix","Qatar Grand Prix", "Abu Dhabi Grand Prix"]
 driver_to_team = {
     "Leclerc": "Ferrari", "Hamilton": "Ferrari",
     "Piastri": "McLaren", "Norris": "McLaren",
