@@ -1,5 +1,4 @@
-import time
-import os
+import time, os
 import pandas as pd
 
 races = ["Australian Grand Prix", "China Sprint", "Chinese Grand Prix", "Japanese Grand Prix", 
