@@ -80,7 +80,7 @@ def startSeason():
         if check == "yes":
             checkStandings()
             
-        time.sleep(3)
+        time.sleep(10)
         os.system('clear') 
 
     print("Season Finished.")
