@@ -24,7 +24,7 @@ driver_to_team = {
     "Gasly": "Alpine", "Doohan": "Alpine"
 }
 
-df_standings = pd.DataFrame(list(driver_to_team.items)),columns = ["Drivers","Teams"]
+df_standings = pd.DataFrame(list(driver_to_team.items()), columns=["Driver", "Team"])
 df_standings["Points"] = 0
 
 def printWCC():
@@ -55,52 +55,36 @@ def checkStandings():
 
 def startSeason():
     print("WELCOME TO THE 2025 FORMULA ONE SEASON")
-    round = 0
-    while round < len(races):
-        points = [25,18,15,12,10,8,6,4,2,1]
-        sprint_points = [8,7,6,5,4,3,2,1]
-        print()
-        print("Hello and Welcome to the",races[round])
+    
+    for current_race in races:
+        print(f"\nHello and Welcome to the {current_race}")
+        
+        if "Sprint" in current_race:
+            current_points = [8, 7, 6, 5, 4, 3, 2, 1]
+            session_type = "sprint"
+        else:
+            current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+            session_type = "race"
 
-        if "Sprint" in races[round]:
-            for i in range(len(sprint_points)):
-                while True:
-                    name = input(f"Who finished sprint in position {i+1}: ")
-                    if name not in lastNames:
-                        print("Seems like you entered a driver who doesnt exist, please try again!!!")
-                        continue
-                    index = lastNames.index(name)
-                    drivers[index] += sprint_points[i]
-                    break
-
-            round += 1
-            check = input("Would you like to view the standings? ")
-            if check.lower() == "yes":
-                checkStandings()
-            time.sleep(5)
-            os.system('clear')
-            continue
-
-        for i in range(len(points)):
+        for i, pts in enumerate(current_points):
             while True:
-                name = input(f"Who finished race in position {i+1}: ")
-                if name not in lastNames:
-                    print("Seems like you entered a driver who doesnt exist, please try again!!!")
+               
+                name = input(f"Who finished {session_type} in position {i+1}: ").title().strip()
+                if name not in df_standings["Driver"].values:
+                    print("Seems like you entered a driver who doesn't exist, please try again!!!")
                     continue
-                index = lastNames.index(name)
-                drivers[index] += points[i]
+                df_standings.loc[df_standings["Driver"] == name, "Points"] += pts
                 break
                
-        round += 1
-        check = input("Would you like to view standings right now: ")
+        check = input("Would you like to view standings right now? (yes/no): ").lower().strip()
         if check == "yes":
             checkStandings()
-        time.sleep(5)
-        os.system('clear')
-        
+            
+        time.sleep(3)
+        os.system('clear') 
 
     print("Season Finished.")
-    checkStandings()
-    print()
+    printWDC()
+    printWCC()
 
 startSeason()
