@@ -25,35 +25,20 @@ A Flask-based web application that allows users to simulate an entire Formula 1 
 
 ## Scoring System
 
-## Grand Prix
+## Grand Prix                                     ### ⚡ Sprint Points
 
-| Position | Points |
-|----------|--------|
-| 1st      | 25     |
-| 2nd      | 18     |
-| 3rd      | 15     |
-| 4th      | 12     |
-| 5th      | 10     |
-| 6th      | 8      |
-| 7th      | 6      |
-| 8th      | 4      |
+| Position | Points |                           | Position | Points |
+|----------|--------|                           |----------|--------|        
+| 1st      | 25     |                           | 1st      | 8      |
+| 2nd      | 18     |                           | 2nd      | 7      |
+| 3rd      | 15     |                           | 3rd      | 6      |
+| 4th      | 12     |                           | 4th      | 5      |
+| 5th      | 10     |                           | 5th      | 4      |
+| 6th      | 8      |                           | 6th      | 3      |
+| 7th      | 6      |                           | 7th      | 2      |
+| 8th      | 4      |                           | 8th      | 1      |
 | 9th      | 2      |
 | 10th     | 1      |
-
-### ⚡ Sprint Points
-
-| Position | Points |
-|----------|--------|
-| 1st      | 8      |
-| 2nd      | 7      |
-| 3rd      | 6      |
-| 4th      | 5      |
-| 5th      | 4      |
-| 6th      | 3      |
-| 7th      | 2      |
-| 8th      | 1      |
-
----
 
 ## Technologies Used
 
