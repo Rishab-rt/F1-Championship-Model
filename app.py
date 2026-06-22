@@ -132,5 +132,21 @@ def standings():
     wdc_table=wdc[["Driver", "Team", "Points"]].to_html(classes="table table-striped table-hover mt-2", escape=False), 
     wcc_table=wcc.to_html(classes="table table-striped table-hover mt-2", escape=False)
 )
+
+@app.route("/reset-season", methods=["POST"])
+def reset_season():
+    global current_race_index
+    
+    #Reset the race calendar index back to the first race
+    current_race_index = 0
+    
+    #Tell Supabase to set everyone's points back to 0
+    db.session.query(Driver).update({Driver.points: 0})
+    db.session.commit()
+    
+    #Bounce the user back to the home page fresh
+    return redirect(url_for('index'))
+
+
 if __name__ == "__main__":
     app.run(port=3000, debug=True)
