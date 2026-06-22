@@ -118,7 +118,8 @@ def index():
                        error=error_message, 
                        driver_list=all_drivers,
                        current_race_index=current_race_index,
-                       races=races)
+                       races=races,
+                       driver_teams={d.name: d.team for d in drivers_in_db})
         
 @app.route("/standings")
 def standings():

@@ -62,3 +62,54 @@
     font-weight: 500;
     color: var(--f1-text);
   }
+
+  .driver-card {
+    background: var(--f1-card);
+    border: 0.5px solid var(--f1-border);
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  
+  .driver-card .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--f1-text);
+    margin: 0;
+  }
+  
+  .driver-card .team-name {
+    font-size: 11px;
+    color: var(--f1-muted);
+    margin-top: 3px;
+  }
+  
+  .team-ferrari    { border-left: 3px solid #DC0000; }
+  .team-mclaren    { border-left: 3px solid #FF8000; }
+  .team-mercedes   { border-left: 3px solid #C0C0C0; }
+  .team-redbull    { border-left: 3px solid #1E41FF; }
+  .team-williams   { border-left: 3px solid #00A0DE; }
+  .team-astonmartin{ border-left: 3px solid #006F62; }
+  .team-haas       { border-left: 3px solid #B6BABD; }
+  .team-alpine     { border-left: 3px solid #0093CC; }
+  .team-audi       { border-left: 3px solid #E4002B; }
+  .team-vcarb      { border-left: 3px solid #1B3A6B; }
+  .team-cadillac   { border-left: 3px solid #CC0000; }
+
+  .f1-card {
+    background: var(--f1-surface);
+    border: 0.5px solid var(--f1-border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .f1-inner-card {
+    background: var(--f1-card);
+    border: 0.5px solid var(--f1-border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
