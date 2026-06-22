@@ -67,7 +67,7 @@ def get_medal_index(index):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    global current_race_index, df_standings
+    global current_race_index
 
     # If season is over, force user to the standings page
     if current_race_index >= len(races):
@@ -97,6 +97,9 @@ def index():
                 driver = Driver.query.filter_by(name=driver_name).first()
                 if driver:
                     driver.points += current_points[i]
+
+                    result = Result(driver_id=driver.id, race_name=current_race, position=i + 1)
+                    db.session.add(result)
             
             # Commit the changes permanently to the cloud
             db.session.commit()
@@ -148,7 +151,7 @@ def reset_season():
     
     #Reset the race calendar index back to the first race
     current_race_index = 0
-    
+    db.session.query(Result).delete()
     #Tell Supabase to set everyone's points back to 0
     db.session.query(Driver).update({Driver.points: 0})
     db.session.commit()
