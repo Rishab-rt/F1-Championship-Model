@@ -15,10 +15,10 @@
         <span class="race-badge">Race {{ current_race_index + 1 }} of {{ races|length }}</span>
     </div>
 
-        <div class="alert alert-info text-center shadow-sm" role="alert">
-            <h4 class="alert-heading mb-1">Current Event</h4>
-            <strong class="fs-5">{{ race }}</strong>
-        </div>
+    <div class="race-event">
+        <div class="event-label">Current event</div>
+        <div class="event-name">{{ race }}</div>
+    </div>
         
         {% if error %}
             <div class="alert alert-danger shadow-sm d-flex align-items-center" role="alert">
