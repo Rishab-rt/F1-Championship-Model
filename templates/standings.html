@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Championship Standings</title>
+    <style>
+        /* This CSS makes the pandas HTML tables look nice */
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table.data { border-collapse: collapse; margin-bottom: 30px; width: 50%; }
+        table.data th, table.data td { border: 1px solid black; padding: 8px; text-align: left; }
+        table.data th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>🏆 Current F1 Standings</h1>
+
+    <h2>World Drivers' Championship (WDC)</h2>
+    {{ wdc_table | safe }}
+
+    <h2>World Constructors' Championship (WCC)</h2>
+    {{ wcc_table | safe }}
+
+    <br>
+    <a href="/"><button style="padding: 10px 15px;">Back to Race Input</button></a>
+</body>
+</html>

@@ -90,86 +90,20 @@ def index():
 
 @app.route("/standings")
 
-def printWCC():
-    print("\n\t CONSTRUCTORS' CHAMPIONSHIP STANDING ")
+def standings():
+    #Sort the Drivers' Championship and add medals
+    wdc = df_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
+    wdc.index += 1
+    wdc.index = wdc.index.map(get_medal_index)
+    
+    #Sort the Constructors' Championship and add medals
     wcc = df_standings.groupby("Team")["Points"].sum().reset_index()
     wcc = wcc.sort_values(by="Points", ascending=False).reset_index(drop=True)
     wcc.index += 1
     wcc.index = wcc.index.map(get_medal_index)
-    print(wcc)
-    print()
-
-def printWDC():
-    print("\n--- WORLD DRIVERS' CHAMPIONSHIP ---")
-    wdc = df_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
-    wdc.index += 1
-    wdc.index = wdc.index.map(get_medal_index) 
-    print(wdc[["Driver", "Team", "Points"]])   
-    print()
-
-def checkStandings():
-    which = input("WDC or WCC?: ").upper().strip()
-    if which == "WDC":
-        printWDC()
-        if input("Would you like to view the constructors championship? (yes/no): ").lower().strip() == "yes":
-            printWCC()
-    elif which == "WCC":
-        printWCC()
-        if input("Would you like to view the drivers championship? (yes/no): ").lower().strip() == "yes":
-            printWDC()
-
-def startSeason():
-    print("WELCOME TO THE 2026 FORMULA ONE SEASON")
     
-    for current_race in races:
-        print(f"\nHello and Welcome to the {current_race}")
-        
-        if "Sprint" in current_race:
-            current_points = [8, 7, 6, 5, 4, 3, 2, 1]
-            session_type = "sprint"
-        else:
-            current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
-            session_type = "race"
+    #Convert both DataFrames to HTML tables and send them to standings.html
+    return render_template("standings.html", wdc_table=wdc[["Driver", "Team", "Points"]].to_html(classes="data", escape=False), wcc_table=wcc.to_html(classes="data", escape=False))
 
-        required_count = len(current_points)
-
-        while True:
-            user_input = input(f"Enter the top {required_count} drivers separated by commas (or type 'quit' to end):\n> ")
-
-            if user_input.strip().lower() == "quit":
-                print("\nEnding the season early...")
-                break
-            
-            entered_drivers = [name.title().strip() for name in user_input.split(",")]
-            
-            if len(entered_drivers) != required_count:
-                print(f"⚠️ Error: You entered {len(entered_drivers)} drivers, but I need exactly {required_count}. Try again.")
-                continue
-
-            invalid_drivers = [name for name in entered_drivers if name not in df_standings["Driver"].values]
-            if invalid_drivers:
-                print(f"⚠️ Error: These drivers don't exist: {', '.join(invalid_drivers)}. Try again.")
-                continue
-
-            if len(set(entered_drivers)) != len(entered_drivers):
-                print("⚠️ Error: You entered the same driver multiple times. Try again.")
-                continue
-                
-            for i, driver in enumerate(entered_drivers):
-                df_standings.loc[df_standings["Driver"] == driver, "Points"] += current_points[i]
-                
-            break 
-               
-        check = input("Would you like to view standings right now? (yes/no): ").lower().strip()
-        if check == "yes":
-            checkStandings()
-            time.sleep(10)
-            
-
-        os.system('clear') 
-
-    print("Season Finished.")
-    printWDC()
-    printWCC()
-
-startSeason()
+if __name__ == "__main__":
+    app.run(port=3000, debug=True)
