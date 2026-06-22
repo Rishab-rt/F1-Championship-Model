@@ -113,10 +113,12 @@ def index():
     all_drivers = [d.name for d in drivers_in_db]
         
     return render_template("index.html", 
-                           race=current_race, 
-                           required=required_count, 
-                           error=error_message, 
-                           driver_list=all_drivers) # <-- Passes drivers to Jinja
+                       race=current_race, 
+                       required=required_count, 
+                       error=error_message, 
+                       driver_list=all_drivers,
+                       current_race_index=current_race_index,
+                       races=races)
         
 @app.route("/standings")
 def standings():
@@ -142,7 +144,9 @@ def standings():
     return render_template(
         "standings.html", 
         drivers=sorted_drivers, 
-        constructors=sorted_constructors
+        constructors=sorted_constructors,
+        current_race_index=current_race_index,
+        races=races
     )
 
 @app.route("/reset-season", methods=["POST"])
