@@ -1,7 +1,26 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+#Database Object
+db = SQLAlchemy(app)
+
+#Database Table
+class Driver(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    team = db.Column(db.String(100), nullable=False)
+    points = db.Column(db.Integer, default=0)
 
 
 races = ["Australian Grand Prix", "China Sprint", "Chinese Grand Prix", "Japanese Grand Prix", 
@@ -25,9 +44,6 @@ driver_to_team = {
     "Gasly": "Alpine", "Colapinto": "Alpine",
     "Perez":"Cadillac","Bottas":"Cadillac"
 }
-
-df_standings = pd.DataFrame(list(driver_to_team.items()), columns=["Driver", "Team"])
-df_standings["Points"] = 0
 
 current_race_index = 0
 
@@ -68,16 +84,21 @@ def index():
             error_message = "⚠️ You selected the same driver multiple times. Every position must be unique!"
         else:
             # If no errors, award the points to the correct drivers
-            for i, driver in enumerate(entered_drivers):
-                df_standings.loc[df_standings["Driver"] == driver, "Points"] += current_points[i]    
+            for i, driver_name in enumerate(entered_drivers):
+                driver = Driver.query.filter_by(name=driver_name).first()
+                if driver:
+                    driver.points += current_points[i]
             
+            # Commit the changes permanently to the cloud
+            db.session.commit()
             # Move to the next race in the list
             current_race_index += 1    
             # Refresh the home page so the next race shows up
             return redirect(url_for('index'))
         
     # 3. Pull the drivers list from your DataFrame to populate the HTML dropdowns
-    all_drivers = sorted(df_standings["Driver"].tolist())
+    drivers_in_db = Driver.query.order_by(Driver.name).all()
+    all_drivers = [d.name for d in drivers_in_db]
         
     return render_template("index.html", 
                            race=current_race, 
@@ -90,13 +111,17 @@ def index():
 @app.route("/standings")
 
 def standings():
+    drivers_query = Driver.query.all()
+    data = [{"Driver": d.name, "Team": d.team, "Points": d.points} for d in drivers_query]
+    df_db_standings = pd.DataFrame(data)
+
     #Sort the Drivers' Championship and add medals
-    wdc = df_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
+    wdc = df_db_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
     wdc.index += 1
     wdc.index = wdc.index.map(get_medal_index)
     
     #Sort the Constructors' Championship and add medals
-    wcc = df_standings.groupby("Team")["Points"].sum().reset_index()
+    wcc = df_db_standings.groupby("Team")["Points"].sum().reset_index()
     wcc = wcc.sort_values(by="Points", ascending=False).reset_index(drop=True)
     wcc.index += 1
     wcc.index = wcc.index.map(get_medal_index)
