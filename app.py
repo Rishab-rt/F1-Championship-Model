@@ -22,6 +22,15 @@ class Driver(db.Model):
     team = db.Column(db.String(100), nullable=False)
     points = db.Column(db.Integer, default=0)
 
+#Result table
+class Result(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    driver_id = db.Column(db.Integer, db.ForeignKey('driver.id'), nullable=False)
+    race_name = db.Column(db.String(100), nullable=False)
+    position = db.Column(db.Integer, nullable=False) # 1 for win, 2 for second, etc.
+    
+    # Establish a relationship so a driver can easily pull all their results
+    driver = db.relationship('Driver', backref=db.backref('results', lazy=True))
 
 races = ["Australian Grand Prix", "China Sprint", "Chinese Grand Prix", "Japanese Grand Prix", 
          "Miami Sprint", "Miami Grand Prix", "Canada Sprint", "Canadian Grand Prix", 
@@ -106,32 +115,32 @@ def index():
                            error=error_message, 
                            driver_list=all_drivers) # <-- Passes drivers to Jinja
         
-
-
 @app.route("/standings")
-
 def standings():
-    drivers_query = Driver.query.all()
-    data = [{"Driver": d.name, "Team": d.team, "Points": d.points} for d in drivers_query]
-    df_db_standings = pd.DataFrame(data)
+    drivers = Driver.query.all()
+    
+    # Python only handles the sorting logic
+    def f1_sorting_key(driver):
+        finish_counts = [0] * 20 
+        for r in driver.results:
+            if 1 <= r.position <= 20:
+                finish_counts[r.position - 1] += 1
+        return (driver.points, *finish_counts)
 
-    #Sort the Drivers' Championship and add medals
-    wdc = df_db_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
-    wdc.index += 1
-    wdc.index = wdc.index.map(get_medal_index)
-    
-    #Sort the Constructors' Championship and add medals
-    wcc = df_db_standings.groupby("Team")["Points"].sum().reset_index()
-    wcc = wcc.sort_values(by="Points", ascending=False).reset_index(drop=True)
-    wcc.index += 1
-    wcc.index = wcc.index.map(get_medal_index)
-    
-    #Convert both DataFrames to HTML tables and send them to standings.html
+    sorted_drivers = sorted(drivers, key=f1_sorting_key, reverse=True)
+
+    # Process constructors simply
+    constructors_dict = {}
+    for d in drivers:
+        constructors_dict[d.team] = constructors_dict.get(d.team, 0) + d.points
+    sorted_constructors = sorted(constructors_dict.items(), key=lambda x: x[1], reverse=True)
+
+    # Just send the RAW lists to the HTML. No HTML strings here!
     return render_template(
-    "standings.html", 
-    wdc_table=wdc[["Driver", "Team", "Points"]].to_html(classes="table table-striped table-hover mt-2", escape=False), 
-    wcc_table=wcc.to_html(classes="table table-striped table-hover mt-2", escape=False)
-)
+        "standings.html", 
+        drivers=sorted_drivers, 
+        constructors=sorted_constructors
+    )
 
 @app.route("/reset-season", methods=["POST"])
 def reset_season():
