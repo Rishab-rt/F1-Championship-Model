@@ -168,3 +168,43 @@
     font-family: 'Barlow Condensed', sans-serif;
     letter-spacing: 0.04em;
   }
+
+  .btn-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .btn-papaya-f1 {
+    background: var(--f1-papaya);
+    color: #111111;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .btn-papaya-f1:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  
+  .btn-ghost-f1 {
+    background: transparent;
+    color: var(--f1-muted);
+    border: 0.5px solid var(--f1-border);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .btn-ghost-f1:hover {
+    color: var(--f1-text);
+    border-color: var(--f1-silver);
+  }
