@@ -26,11 +26,21 @@ driver_to_team = {
 df_standings = pd.DataFrame(list(driver_to_team.items()), columns=["Driver", "Team"])
 df_standings["Points"] = 0
 
+def get_medal_index(index):
+    if index == 1:
+        return "1 🥇"
+    elif index == 2:
+        return "2 🥈"
+    elif index == 3:
+        return "3 🥉"
+    return str(index)
+
 def printWCC():
     print("\n\t CONSTRUCTORS' CHAMPIONSHIP STANDING ")
     wcc = df_standings.groupby("Team")["Points"].sum().reset_index()
     wcc = wcc.sort_values(by="Points", ascending=False).reset_index(drop=True)
     wcc.index += 1
+    wcc.index = wcc.index.map(get_medal_index)
     print(wcc)
     print()
 
@@ -38,7 +48,8 @@ def printWDC():
     print("\n--- WORLD DRIVERS' CHAMPIONSHIP ---")
     wdc = df_standings.sort_values(by="Points", ascending=False).reset_index(drop=True)
     wdc.index += 1
-    print(wdc[["Driver", "Points"]])
+    wdc.index = wdc.index.map(get_medal_index) 
+    print(wdc[["Driver", "Team", "Points"]])   
     print()
 
 def checkStandings():
