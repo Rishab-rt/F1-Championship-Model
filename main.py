@@ -68,33 +68,27 @@ def startSeason():
         required_count = len(current_points)
 
         while True:
-            # Ask for all drivers at once
             user_input = input(f"Enter the top {required_count} drivers separated by commas:\n> ")
             
-            # Clean up the input into a list of names
             entered_drivers = [name.title().strip() for name in user_input.split(",")]
             
-            # Check 1: Did they enter the correct amount of names?
             if len(entered_drivers) != required_count:
                 print(f"⚠️ Error: You entered {len(entered_drivers)} drivers, but I need exactly {required_count}. Try again.")
                 continue
-                
-            # Check 2: Do all the typed names actually exist in your dataframe?
+
             invalid_drivers = [name for name in entered_drivers if name not in df_standings["Driver"].values]
             if invalid_drivers:
                 print(f"⚠️ Error: These drivers don't exist: {', '.join(invalid_drivers)}. Try again.")
                 continue
-                
-            # Check 3: Did they accidentally type the same driver twice?
+
             if len(set(entered_drivers)) != len(entered_drivers):
                 print("⚠️ Error: You entered the same driver multiple times. Try again.")
                 continue
                 
-            # If everything is correct, assign the points!
             for i, driver in enumerate(entered_drivers):
                 df_standings.loc[df_standings["Driver"] == driver, "Points"] += current_points[i]
                 
-            break # Exit the loop and move on to the standings check
+            break 
                
         check = input("Would you like to view standings right now? (yes/no): ").lower().strip()
         if check == "yes":
