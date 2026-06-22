@@ -40,12 +40,11 @@ def get_medal_index(index):
         return "3 🥉"
     return str(index)
 
-@app.route("/",methods=["GET","POST"])
-
+@app.route("/", methods=["GET", "POST"])
 def index():
     global current_race_index, df_standings
 
-    #If season is over, force user to the standings page
+    # If season is over, force user to the standings page
     if current_race_index >= len(races):
         return redirect(url_for('standings'))
     
@@ -57,23 +56,16 @@ def index():
     error_message = None
 
     if request.method == "POST":
-        # Grab the text from the HTML input box named "drivers"
-        user_input = request.form.get("drivers")
+        # 1. Rebuild the list by grabbing each dropdown value sequentially
+        entered_drivers = []
+        for i in range(1, required_count + 1):
+            driver_name = request.form.get(f"driver_{i}")
+            if driver_name:
+                entered_drivers.append(driver_name)
         
-        # Clean the input
-        entered_drivers = [name.title().strip() for name in user_input.split(",")]
-        
-        # Check for drivers that don't exist in our dictionary
-        invalid_drivers = [name for name in entered_drivers if name not in df_standings["Driver"].values]
-
-        #Error when the number of drivers entered is less than the number of drivers with points
-        if len(entered_drivers) != required_count:
-            error_message = f"Need exactly {required_count} drivers. You entered {len(entered_drivers)}."
-        #Error for when the drivers entered do not exist (usually spelling mistakes)
-        elif invalid_drivers:
-            error_message = f"These drivers don't exist: {', '.join(invalid_drivers)}."
-        elif len(set(entered_drivers)) != len(entered_drivers):
-            error_message = "You entered the same driver multiple times."
+        # 2. Validation: We only need to check for duplicates now!
+        if len(set(entered_drivers)) != len(entered_drivers):
+            error_message = "⚠️ You selected the same driver multiple times. Every position must be unique!"
         else:
             # If no errors, award the points to the correct drivers
             for i, driver in enumerate(entered_drivers):
@@ -84,7 +76,14 @@ def index():
             # Refresh the home page so the next race shows up
             return redirect(url_for('index'))
         
-    return render_template("index.html", race=current_race, required=required_count, error=error_message)    
+    # 3. Pull the drivers list from your DataFrame to populate the HTML dropdowns
+    all_drivers = sorted(df_standings["Driver"].tolist())
+        
+    return render_template("index.html", 
+                           race=current_race, 
+                           required=required_count, 
+                           error=error_message, 
+                           driver_list=all_drivers) # <-- Passes drivers to Jinja
         
 
 
@@ -103,7 +102,10 @@ def standings():
     wcc.index = wcc.index.map(get_medal_index)
     
     #Convert both DataFrames to HTML tables and send them to standings.html
-    return render_template("standings.html", wdc_table=wdc[["Driver", "Team", "Points"]].to_html(classes="data", escape=False), wcc_table=wcc.to_html(classes="data", escape=False))
-
+    return render_template(
+    "standings.html", 
+    wdc_table=wdc[["Driver", "Team", "Points"]].to_html(classes="table table-striped table-hover mt-2", escape=False), 
+    wcc_table=wcc.to_html(classes="table table-striped table-hover mt-2", escape=False)
+)
 if __name__ == "__main__":
     app.run(port=3000, debug=True)
