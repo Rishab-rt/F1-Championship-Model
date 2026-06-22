@@ -86,17 +86,17 @@
     margin-top: 3px;
   }
   
-  .team-ferrari    { border-left: 3px solid #DC0000; }
-  .team-mclaren    { border-left: 3px solid #FF8000; }
-  .team-mercedes   { border-left: 3px solid #C0C0C0; }
-  .team-redbull    { border-left: 3px solid #1E41FF; }
-  .team-williams   { border-left: 3px solid #00A0DE; }
-  .team-astonmartin{ border-left: 3px solid #006F62; }
-  .team-haas       { border-left: 3px solid #B6BABD; }
-  .team-alpine     { border-left: 3px solid #0093CC; }
-  .team-audi       { border-left: 3px solid #E4002B; }
-  .team-vcarb      { border-left: 3px solid #1B3A6B; }
-  .team-cadillac   { border-left: 3px solid #CC0000; }
+  .team-ferrari    { border-left: 4px solid #DC0000; }
+  .team-mclaren    { border-left: 4px solid #FF8000; }
+  .team-mercedes   { border-left: 4px solid #C0C0C0; }
+  .team-redbull    { border-left: 4px solid #1E41FF; }
+  .team-williams   { border-left: 4px solid #00A0DE; }
+  .team-astonmartin{ border-left: 4px solid #006F62; }
+  .team-haas       { border-left: 4px solid #B6BABD; }
+  .team-alpine     { border-left: 4px solid #0093CC; }
+  .team-audi       { border-left: 4px solid #E4002B; }
+  .team-vcarb      { border-left: 4px solid #1B3A6B; }
+  .team-cadillac   { border-left: 4px solid #CC0000; }
 
   .f1-card {
     background: var(--f1-surface);
@@ -112,4 +112,59 @@
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 16px;
+  }
+  .placement-list {
+    background: var(--f1-card);
+    border: 0.5px solid var(--f1-border);
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 0;
+    list-style: none;
+  }
+
+  .placement-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--f1-border);
+    font-size: 14px;
+    color: var(--f1-text);
+  }
+  
+  .placement-row:last-child {
+    border-bottom: none;
+  }
+  
+  .placement-pos {
+    font-size: 12px;
+    color: var(--f1-muted);
+    width: 18px;
+  }
+  
+  .placement-driver {
+    font-weight: 500;
+  }
+  
+  .placement-row.empty {
+    color: var(--f1-muted);
+    font-style: italic;
+  }
+
+  .btn-danger-f1 {
+    background: transparent;
+    border: 0.5px solid #A32D2D;
+    color: #E24B4A;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  body {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  h1, h2, h5, .event-name, .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.04em;
   }
