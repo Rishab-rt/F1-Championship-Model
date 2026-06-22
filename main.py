@@ -68,7 +68,11 @@ def startSeason():
         required_count = len(current_points)
 
         while True:
-            user_input = input(f"Enter the top {required_count} drivers separated by commas:\n> ")
+            user_input = input(f"Enter the top {required_count} drivers separated by commas (or type 'quit' to end):\n> ")
+
+            if user_input.strip().lower() == "quit":
+                print("\nEnding the season early...")
+                break
             
             entered_drivers = [name.title().strip() for name in user_input.split(",")]
             
