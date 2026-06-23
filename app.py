@@ -178,7 +178,7 @@ def standings():
         constructors=sorted_constructors,
         current_race_index=current_race_index,
         races=races
-    )
+        )
 
 #Route to reset the season
 @app.route("/reset-season", methods=["POST"])
@@ -255,6 +255,41 @@ def edit_race(race_index):
                            race_index=race_index,
                            error=None)
 
+@app.route("/stats")
+def stats():
+    drivers = Driver.query.all()
+    sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
+    top10 = sorted_drivers[:10]
+
+    timeline = {}
+    for driver in top10:
+        cumulative = 0
+        race_points = []
+        for race_name in races[:current_race_index]:
+            # 1. query Result for this driver + race_name
+            result = Result.query.filter_by(driver_id=driver.id, race_name=race_name).first()
+            # 2. points scale
+            is_sprint = "Sprint" in race_name
+            points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+
+            # 3. add points if result exists
+            if result and 1 <= result.position <= len(points_scale):
+                cumulative += points_scale[result.position-1]
+
+            # 4. append
+            race_points.append(cumulative)
+            pass
+        
+        timeline[driver.name] = race_points
+    
+    return render_template(
+        "stats.html",
+        timeline=timeline,
+        race_labels = races[:current_race_index],
+        driver_codes=driver_codes,
+        top10=top10,
+        current_race_index=current_race_index
+        )
 
 if __name__ == "__main__":
     app.run(port=3000, debug=True)
