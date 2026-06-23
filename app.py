@@ -68,6 +68,32 @@ driver_codes = {
     "Perez": "PER", "Bottas": "BOT"
 }
 
+driver_number_to_name = {
+    1: "Norris",
+    3: "Verstappen",
+    5: "Bortoleto",
+    6: "Hadjar",
+    10: "Gasly",
+    12: "Antonelli",
+    16: "Leclerc",
+    23: "Albon",
+    27: "Hulkenberg",
+    30: "Lawson",
+    31: "Ocon",
+    41: "Bearman",
+    43: "Colapinto",
+    44: "Hamilton",
+    63: "Russell",
+    81: "Piastri",
+    87: "Linblad",
+    5: "Bortoleto",
+    14: "Alonso",
+    18: "Stroll",
+    11: "Perez",
+    77: "Bottas",
+    20: "Sainz",
+}
+
 def recalculate_all_points():
     # Zero out everyone first
     db.session.query(Driver).update({Driver.points: 0})
