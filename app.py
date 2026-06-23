@@ -140,29 +140,41 @@ def get_medal_index(index):
 
 def sync_results():
     for race_name, session_key in race_session_keys.items():
+        print(f"Checking {race_name}...")
         # 1. check if race already exists in DB
         existing = Result.query.filter_by(race_name=race_name).first()
         if existing:
+            print(f"Already there, skipping")
             continue
         
+        print(f" --> Fethcing from OPENF1")
         # 2. fetch positions from OpenF1
         response = requests.get(f"https://api.openf1.org/v1/position?session_key={session_key}")
         positions = response.json()
-        
-        # 3. loop through positions and save each result
+
+        if not isinstance(positions, list) or len(positions) == 0:
+            print(f"  → No data returned, skipping")
+            continue
+
+        # Keep only the final position for each driver
+        final_positions = {}
         for entry in positions:
             driver_number = entry["driver_number"]
-            position = entry["position"]
+            final_positions[driver_number] = entry["position"]
+
+        # Sort by position so we insert in finishing order
+        sorted_positions = sorted(final_positions.items(), key=lambda x: x[1])
+
+        for driver_number, position in sorted_positions:
             driver_name = driver_number_to_name.get(driver_number)
             if not driver_name:
-                continue  # skip unknown drivers
+                continue
             driver = Driver.query.filter_by(name=driver_name).first()
             if driver:
                 result = Result(driver_id=driver.id, race_name=race_name, position=position)
                 db.session.add(result)
         
-        db.session.commit()
-    
+
     recalculate_all_points()
 
 
@@ -370,16 +382,13 @@ def stats():
 @app.route("/sync", methods=["POST"])
 def sync():
     global current_race_index
-    with app.app_context():
-        sync_results()
-        current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
+    sync_results()
+    current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
     return redirect(url_for('standings'))
-
 
 if __name__ == "__main__":
     with app.app_context():
         try:
-            sync_results()
             current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
             print(f"✅ Synced successfully. {current_race_index} races loaded.")
         except Exception as e:
