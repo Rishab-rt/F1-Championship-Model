@@ -94,6 +94,20 @@ driver_number_to_name = {
     20: "Sainz",
 }
 
+race_session_keys = {
+    "Australian Grand Prix": 11234,
+    "China Sprint": 11240,
+    "Chinese Grand Prix": 11245,
+    "Japanese Grand Prix": 11253,
+    "Miami Sprint": 11275,
+    "Miami Grand Prix": 11280,
+    "Canada Sprint": 11286,
+    "Canadian Grand Prix": 11291,
+    "Monaco Grand Prix": 11299,
+    "Spanish Grand Prix": 11307,
+    "Austrian Grand Prix": 11315,
+}
+
 def recalculate_all_points():
     # Zero out everyone first
     db.session.query(Driver).update({Driver.points: 0})
