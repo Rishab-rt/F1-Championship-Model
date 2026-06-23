@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F1 2026 Simulator</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
 </head>
 <body>
+    <div class="f1-container">
 
     <div class="f1-header">
         <h1>2026 F1 Season Simulator</h1>
@@ -37,7 +37,7 @@
         
         <div class="f1-card">
             <div>
-                <h2 class="mb-3">Race: <span class="text-primary">{{ race }}</span></h2>
+                <h2 class="race-heading">Race: <span class="race-heading-name">{{ race }}</span></h2>
                 
                 {% if error %}
                     <div class="alert alert-danger">{{ error }}</div>
@@ -81,7 +81,7 @@
         </div>
 
         <div class="text-center">
-            <a href="/standings" class="btn btn-outline-primary shadow-sm px-4">📊 View Current Standings</a>
+            <a href="/standings" class="btn-ghost-f1">View standings</a>
         </div>
         
     </div>
@@ -145,6 +145,7 @@
             }
         }
         </script>
+    </div>
     
 </body>
 </html>

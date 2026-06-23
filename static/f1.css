@@ -86,17 +86,17 @@
     margin-top: 3px;
   }
   
-  .team-ferrari    { border-left: 4px solid #DC0000; }
-  .team-mclaren    { border-left: 4px solid #FF8000; }
-  .team-mercedes   { border-left: 4px solid #C0C0C0; }
-  .team-redbull    { border-left: 4px solid #1E41FF; }
-  .team-williams   { border-left: 4px solid #00A0DE; }
-  .team-astonmartin{ border-left: 4px solid #006F62; }
-  .team-haas       { border-left: 4px solid #B6BABD; }
-  .team-alpine     { border-left: 4px solid #0093CC; }
-  .team-audi       { border-left: 4px solid #E4002B; }
-  .team-vcarb      { border-left: 4px solid #1B3A6B; }
-  .team-cadillac   { border-left: 4px solid #CC0000; }
+  .team-ferrari    { border-left: 10px solid #DC0000; }
+  .team-mclaren    { border-left: 10px solid #FF8000; }
+  .team-mercedes   { border-left: 10px solid #C0C0C0; }
+  .team-redbull    { border-left: 10px solid #1E41FF; }
+  .team-williams   { border-left: 10px solid #00A0DE; }
+  .team-astonmartin{ border-left: 10px solid #006F62; }
+  .team-haas       { border-left: 10px solid #B6BABD; }
+  .team-alpine     { border-left: 10px solid #0093CC; }
+  .team-audi       { border-left: 10px solid #E4002B; }
+  .team-vcarb      { border-left: 10px solid #1B3A6B; }
+  .team-cadillac   { border-left: 10px solid #CC0000; }
 
   .f1-card {
     background: var(--f1-surface);
@@ -208,3 +208,16 @@
     color: var(--f1-text);
     border-color: var(--f1-silver);
   }
+
+  .race-heading {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px;
+    color: var(--f1-text);
+    margin-bottom: 12px;
+  }
+  
+  .race-heading-name {
+    color: var(--f1-papaya);
+  }
+
+  
