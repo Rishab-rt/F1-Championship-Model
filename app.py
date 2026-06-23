@@ -68,6 +68,22 @@ driver_codes = {
     "Perez": "PER", "Bottas": "BOT"
 }
 
+def recalculate_all_points():
+    # Zero out everyone first
+    db.session.query(Driver).update({Driver.points: 0})
+    
+    # Replay every result in the DB
+    all_results = Result.query.all()
+    for result in all_results:
+        race_name = result.race_name
+        is_sprint = "Sprint" in race_name
+        points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+        
+        if 1 <= result.position <= len(points_scale):
+            result.driver.points += points_scale[result.position - 1]
+    
+    db.session.commit()
+
 current_race_index = 0
 
 def get_medal_index(index):
