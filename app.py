@@ -367,10 +367,18 @@ def stats():
         current_race_index=current_race_index
         )
 
+@app.route("/sync", methods=["POST"])
+def sync():
+    global current_race_index
+    with app.app_context():
+        sync_results()
+        current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
+    return redirect(url_for('standings'))
+
 
 with app.app_context():
     sync_results()
     current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
-    
+
 if __name__ == "__main__":
     app.run(port=3000, debug=True)
