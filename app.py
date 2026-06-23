@@ -110,6 +110,7 @@ def index():
             current_points = [8, 7, 6, 5, 4, 3, 2, 1]
     else:
             current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+            
     required_count = len(current_points)
 
     error_message = None
