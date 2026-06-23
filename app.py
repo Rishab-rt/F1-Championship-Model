@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
 
@@ -136,6 +137,34 @@ def get_medal_index(index):
     elif index == 3:
         return "3 🥉"
     return str(index)
+
+def sync_results():
+    for race_name, session_key in race_session_keys.items():
+        # 1. check if race already exists in DB
+        existing = Result.query.filter_by(race_name=race_name).first()
+        if existing:
+            continue
+        
+        # 2. fetch positions from OpenF1
+        response = requests.get(f"https://api.openf1.org/v1/position?session_key={session_key}")
+        positions = response.json()
+        
+        # 3. loop through positions and save each result
+        for entry in positions:
+            driver_number = entry["driver_number"]
+            position = entry["position"]
+            driver_name = driver_number_to_name.get(driver_number)
+            if not driver_name:
+                continue  # skip unknown drivers
+            driver = Driver.query.filter_by(name=driver_name).first()
+            if driver:
+                result = Result(driver_id=driver.id, race_name=race_name, position=position)
+                db.session.add(result)
+        
+        db.session.commit()
+    
+    recalculate_all_points()
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
