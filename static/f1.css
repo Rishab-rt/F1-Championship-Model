@@ -292,7 +292,7 @@
   
   .team-pill.team-ferrari      { border-left-color: #DC0000; }
   .team-pill.team-mclaren      { border-left-color: #FF8000; }
-  .team-pill.team-mercedes     { border-left-color: #C0C0C0; }
+  .team-pill.team-mercedes     { border-left-color: #00b7ff; }
   .team-pill.team-redbull      { border-left-color: #1E41FF; }
   .team-pill.team-williams     { border-left-color: #00A0DE; }
   .team-pill.team-astonmartin  { border-left-color: #006F62; }
@@ -308,3 +308,43 @@
     margin: 0 auto;
     padding: 24px 20px;
   }
+
+  .progress-track {
+    background: var(--f1-surface);
+    border: 0.5px solid var(--f1-border);
+    border-radius: 20px;
+    height: 28px;
+    width: 100%;
+    margin-bottom: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    background: var(--f1-red);
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.4s ease;
+    min-width: 2px;
+  }
+  
+  .progress-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    color: var(--f1-text);
+    font-family: 'Inter', sans-serif;
+    white-space: nowrap;
+  }
+
+  .section-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    color: var(--f1-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+

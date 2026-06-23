@@ -54,6 +54,20 @@ driver_to_team = {
     "Perez":"Cadillac","Bottas":"Cadillac"
 }
 
+driver_codes = {
+    "Leclerc": "LEC", "Hamilton": "HAM",
+    "Piastri": "PIA", "Norris": "NOR",
+    "Russell": "RUS", "Antonelli": "ANT",
+    "Verstappen": "VER", "Hadjar": "HAD",
+    "Sainz": "SAI", "Albon": "ALB",
+    "Alonso": "ALO", "Stroll": "STR",
+    "Ocon": "OCO", "Bearman": "BEA",
+    "Linblad": "LIN", "Lawson": "LAW",
+    "Hulkenberg": "HUL", "Bortoleto": "BOR",
+    "Gasly": "GAS", "Colapinto": "COL",
+    "Perez": "PER", "Bottas": "BOT"
+}
+
 current_race_index = 0
 
 def get_medal_index(index):

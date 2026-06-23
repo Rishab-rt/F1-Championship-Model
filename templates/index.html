@@ -16,6 +16,11 @@
         <span class="race-badge">Race {{ current_race_index + 1 }} of {{ races|length }}</span>
     </div>
 
+    <div class="progress-track">
+        <div class="progress-fill" style="width: {{ ((current_race_index / races|length) * 100)|round(1) }}%"></div>
+        <span class="progress-label">{{ current_race_index }} / {{ races|length }} races complete</span>
+    </div>
+
     <div class="race-event">
         <div class="event-label">Current event</div>
         <div class="event-name">{{ race }}</div>
@@ -44,7 +49,7 @@
                 {% endif %}
             
                 <div class="f1-inner-card">
-                    <h5>Current Placements (Fill top to bottom):</h5>
+                    <h5 class="section-label">Current Placements</h5>
                     <ol id="placement-list" class="placement-list">
                         {% for p in range(required) %}
                             <li class="placement-row empty">
@@ -65,7 +70,7 @@
                     </form>
                 </div>
             
-                <h5>Select Drivers:</h5>
+                <h5 class="section-label">Select Drivers</h5>
                 <div class="row g-2" id="driver-grid">
                     {% for driver in driver_list %}
                     <div class="col-6 col-md-3">
