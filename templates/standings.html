@@ -9,81 +9,80 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
 </head>
 <body>
+    <div class="f1-container">
 
-    <div class="container mt-5" style="max-width: 800px;">
         <div class="f1-header">
             <h1>Championship Standings</h1>
             <span class="race-badge">After {{ current_race_index }} races</span>
         </div>
-
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <table class="table table-striped table-hover text-center align-middle">
+    
+        <div class="standings-grid">
+    
+            <div class="f1-card">
+                <h2 class="section-heading">Drivers</h2>
+                <table class="standings-table">
                     <thead>
                         <tr>
-                            <th></th> <th class="text-end pe-5">Driver</th>
-                            <th class="text-center">Team</th>
-                            <th class="text-start ps-4">Points</th>
+                            <th></th>
+                            <th>Driver</th>
+                            <th>Team</th>
+                            <th>Pts</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for driver in drivers %}
                         <tr>
-                            <td>
-                                {{ loop.index }}
+                            <td class="pos-cell">
                                 {% if loop.index == 1 %}🥇
                                 {% elif loop.index == 2 %}🥈
-                                {% elif loop.index == 3 %}🥉{% endif %}
+                                {% elif loop.index == 3 %}🥉
+                                {% else %}{{ loop.index }}{% endif %}
                             </td>
-                            <td>{{ driver.name }}</td>
-                            <td>{{ driver.team }}</td>
-                            <td><strong>{{ driver.points }}</strong></td>
+                            <td class="driver-cell">{{ driver.name }}</td>
+                            <td><span class="team-pill team-{{ driver.team | lower | replace(' ', '') }}">{{ driver.team }}</span></td>
+                            <td class="pts-cell">{{ driver.points }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-
-            <div class="col-md-6 mb-4">
-                <table class="table table-striped table-hover text-center align-middle">
+    
+            <div class="f1-card">
+                <h2 class="section-heading">Constructors</h2>
+                <table class="standings-table">
                     <thead>
                         <tr>
-                            <th></th> <th class="text-center">Team</th>
-                            <th class="text-start ps-5">Points</th>
+                            <th></th>
+                            <th>Team</th>
+                            <th>Pts</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for team, points in constructors %}
                         <tr>
-                            <td>
-                                {{ loop.index }}
+                            <td class="pos-cell">
                                 {% if loop.index == 1 %}🥇
                                 {% elif loop.index == 2 %}🥈
-                                {% elif loop.index == 3 %}🥉{% endif %}
+                                {% elif loop.index == 3 %}🥉
+                                {% else %}{{ loop.index }}{% endif %}
                             </td>
-                            <td>{{ team }}</td>
-                            <td><strong>{{ points }}</strong></td>
+                            <td class="driver-cell">{{ team }}</td>
+                            <td class="pts-cell">{{ points }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <div class="text-center my-4">
-            <a href="/" class="btn btn-dark shadow-sm px-4">↩️ Back to Race Input</a>
-
-            <form action="/reset-season" method="POST" onsubmit="return confirm('Are you sure you want to completely wipe all standings and restart the 2026 season?');">
-                <button type="submit" class="btn btn-danger btn-sm shadow-sm">
-                    🔄 Clear Database & Restart Season
-                </button>
-            </form>
-
-        </div>
-
-        
-    </div>
     
-   
-</body>
-</html>
+        </div>
+    
+        <div style="display: flex; justify-content: space-between; margin-top: 16px;">
+            <a href="/" class="btn-ghost-f1">Back to race input</a>
+            <form action="/reset-season" method="POST" onsubmit="return confirm('Are you sure you want to completely wipe all standings and restart the 2026 season?');">
+                <button type="submit" class="btn-danger-f1">Clear & Restart Season</button>
+            </form>
+        </div>
+    
+    </div>
+    </body>
+    </html>

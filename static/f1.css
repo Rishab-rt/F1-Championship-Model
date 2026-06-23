@@ -220,4 +220,91 @@
     color: var(--f1-papaya);
   }
 
+  .standings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
   
+  @media (max-width: 640px) {
+    .standings-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .section-heading {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px;
+    color: var(--f1-text);
+    margin-bottom: 12px;
+  }
+  
+  .standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  .standings-table th {
+    font-size: 11px;
+    color: var(--f1-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 0.5px solid var(--f1-border);
+  }
+  
+  .standings-table td {
+    padding: 10px 10px;
+    border-bottom: 0.5px solid var(--f1-border);
+    color: var(--f1-text);
+  }
+  
+  .standings-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .pos-cell {
+    color: var(--f1-muted);
+    font-size: 13px;
+    width: 32px;
+  }
+  
+  .driver-cell {
+    font-weight: 500;
+  }
+  
+  .pts-cell {
+    color: var(--f1-papaya);
+    font-weight: 500;
+  }
+  
+  .team-pill {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: var(--f1-surface);
+    color: var(--f1-muted);
+    border-left: 3px solid var(--f1-border);
+  }
+  
+  .team-pill.team-ferrari      { border-left-color: #DC0000; }
+  .team-pill.team-mclaren      { border-left-color: #FF8000; }
+  .team-pill.team-mercedes     { border-left-color: #C0C0C0; }
+  .team-pill.team-redbull      { border-left-color: #1E41FF; }
+  .team-pill.team-williams     { border-left-color: #00A0DE; }
+  .team-pill.team-astonmartin  { border-left-color: #006F62; }
+  .team-pill.team-haas         { border-left-color: #B6BABD; }
+  .team-pill.team-alpine       { border-left-color: #0093CC; }
+  .team-pill.team-audi         { border-left-color: #E4002B; }
+  .team-pill.team-vcarb        { border-left-color: #1B3A6B; }
+  .team-pill.team-cadillac     { border-left-color: #CC0000; }
+
+
+  .f1-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
