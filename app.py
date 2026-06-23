@@ -180,19 +180,80 @@ def standings():
         races=races
     )
 
+#Route to reset the season
 @app.route("/reset-season", methods=["POST"])
 def reset_season():
     global current_race_index
-    
-    #Reset the race calendar index back to the first race
     current_race_index = 0
-    db.session.query(Result).delete()
-    #Tell Supabase to set everyone's points back to 0
-    db.session.query(Driver).update({Driver.points: 0})
+    Result.query.delete()
     db.session.commit()
-    
-    #Bounce the user back to the home page fresh
+    recalculate_all_points()
     return redirect(url_for('index'))
+
+##Route to edit the previous results
+@app.route("/edit/<int:race_index>", methods=["GET", "POST"])
+def edit_race(race_index):
+    # Guard: can't edit a race that hasn't happened yet
+    if race_index >= current_race_index or race_index >= len(races):
+        return redirect(url_for('index'))
+    
+    race_name = races[race_index]
+    is_sprint = "Sprint" in race_name
+    points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+    required_count = len(points_scale)
+
+    # Get the existing results for this race so we can pre-fill the form
+    existing_results = Result.query.filter_by(race_name=race_name).order_by(Result.position).all()
+    existing_order = [r.driver.name for r in existing_results]
+
+    if request.method == "POST":
+        entered_drivers = []
+        for i in range(1, required_count + 1):
+            driver_name = request.form.get(f"driver_{i}")
+            if driver_name:
+                entered_drivers.append(driver_name)
+
+        if len(set(entered_drivers)) != len(entered_drivers):
+            error = "Every position must be unique!"
+            drivers_in_db = Driver.query.order_by(Driver.name).all()
+            all_drivers = [d.name for d in drivers_in_db]
+            driver_teams = {d.name: d.team for d in drivers_in_db}
+            return render_template("edit_race.html",
+                                   race=race_name,
+                                   required=required_count,
+                                   driver_list=all_drivers,
+                                   driver_teams=driver_teams,
+                                   existing_order=existing_order,
+                                   error=error,
+                                   race_index=race_index)
+
+        # Delete old results for this race and write new ones
+        Result.query.filter_by(race_name=race_name).delete()
+        for i, driver_name in enumerate(entered_drivers):
+            driver = Driver.query.filter_by(name=driver_name).first()
+            if driver:
+                result = Result(driver_id=driver.id, race_name=race_name, position=i + 1)
+                db.session.add(result)
+
+        db.session.commit()
+
+        # Rebuild all points from scratch
+        recalculate_all_points()
+
+        return redirect(url_for('standings'))
+
+    drivers_in_db = Driver.query.order_by(Driver.name).all()
+    all_drivers = [d.name for d in drivers_in_db]
+    driver_teams = {d.name: d.team for d in drivers_in_db}
+
+    return render_template("edit_race.html",
+                           race=race_name,
+                           required=required_count,
+                           driver_list=all_drivers,
+                           driver_teams=driver_teams,
+                           existing_order=existing_order,
+                           race_index=race_index,
+                           error=None)
 
 
 if __name__ == "__main__":
