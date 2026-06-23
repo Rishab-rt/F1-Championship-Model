@@ -376,9 +376,12 @@ def sync():
     return redirect(url_for('standings'))
 
 
-with app.app_context():
-    sync_results()
-    current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
-
 if __name__ == "__main__":
+    with app.app_context():
+        try:
+            sync_results()
+            current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
+            print(f"✅ Synced successfully. {current_race_index} races loaded.")
+        except Exception as e:
+            print(f"⚠️ Sync failed: {e}")
     app.run(port=3000, debug=True)
