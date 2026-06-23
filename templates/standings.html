@@ -15,7 +15,17 @@
             <h1>Championship Standings</h1>
             <span class="race-badge">After {{ current_race_index }} races</span>
         </div>
-    
+
+        <div class="f1-card" style="margin-bottom: 16px;">
+            <h5 class="section-label">Edit a past race</h5>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                {% for i in range(current_race_index) %}
+                    <a href="/edit/{{ i }}" class="race-edit-pill">{{ races[i] }}</a>
+                {% endfor %}
+            </div>
+        </div>
+
+        
         <div class="standings-grid">
     
             <div class="f1-card">

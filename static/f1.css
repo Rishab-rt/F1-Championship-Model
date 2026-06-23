@@ -348,3 +348,20 @@
     margin-bottom: 10px;
   }
 
+  .race-edit-pill {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--f1-surface);
+    color: var(--f1-muted);
+    border: 0.5px solid var(--f1-border);
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .race-edit-pill:hover {
+    border-color: var(--f1-papaya);
+    color: var(--f1-papaya);
+  }
+  
+
