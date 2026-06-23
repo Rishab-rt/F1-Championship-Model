@@ -76,8 +76,10 @@ def recalculate_all_points():
     all_results = Result.query.all()
     for result in all_results:
         race_name = result.race_name
-        is_sprint = "Sprint" in race_name
-        points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+        if ("Sprint" in race_name):
+            points_scale = [8, 7, 6, 5, 4, 3, 2, 1]
+        else:
+            points_scale =[25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
         
         if 1 <= result.position <= len(points_scale):
             result.driver.points += points_scale[result.position - 1]
@@ -104,8 +106,10 @@ def index():
         return redirect(url_for('standings'))
     
     current_race = races[current_race_index]
-    is_sprint = "Sprint" in current_race
-    current_points = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+    if ("Sprint" in current_race):
+            current_points = [8, 7, 6, 5, 4, 3, 2, 1]
+    else:
+            current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
     required_count = len(current_points)
 
     error_message = None
@@ -264,13 +268,15 @@ def stats():
     timeline = {}
     for driver in top10:
         cumulative = 0
-        race_points = []
+        race_points = []  
         for race_name in races[:current_race_index]:
             # 1. query Result for this driver + race_name
             result = Result.query.filter_by(driver_id=driver.id, race_name=race_name).first()
             # 2. points scale
-            is_sprint = "Sprint" in race_name
-            points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+            if ("Sprint" in race_name):
+                points_scale = [8, 7, 6, 5, 4, 3, 2, 1]
+            else:
+                points_scale =[25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 
             # 3. add points if result exists
             if result and 1 <= result.position <= len(points_scale):
