@@ -398,12 +398,7 @@ def predictions():
         # also add a little section in app.py where the further the races are from today the less value they get for 2026 
         # Simulate each individual race
 
-        if recent_results:
-            weights = [1 / (i + 1) for i in range(len(recent_results))]
-            weighted_sum = sum(r.position * w for r, w in zip(recent_results, weights))
-            avg_position = weighted_sum / sum(weights)
-        else:
-            avg_position = 10.0
+        avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
         
         driver_features[driver.name] = {
             "driver_form": avg_position,
@@ -422,7 +417,7 @@ def predictions():
         # Estimate grid with noise
         grid_order = sorted(
             driver_features.keys(),
-            key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
+            key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 3)
         )
 
         # Build features and predict for each driver
@@ -458,6 +453,9 @@ def predictions():
         remaining_races=remaining_races,
         current_race_index=current_race_index
     )
+
+@app.route("/race")
+
 
 
 if __name__ == "__main__":
