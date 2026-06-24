@@ -394,7 +394,10 @@ def predictions():
 
     driver_features = {}
     for driver in sorted_drivers:
-        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(10).all()
+        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
+        # also add a little section in app.py where the further the races are from today the less value they get for 2026 
+        # Simulate each individual race
+
         if recent_results:
             avg_position = np.mean([r.position for r in recent_results])
         else:
