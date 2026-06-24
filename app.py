@@ -394,7 +394,7 @@ def predictions():
 
     driver_features = {}
     for driver in sorted_drivers:
-        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(5).all()
+        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(10).all()
         if recent_results:
             avg_position = np.mean([r.position for r in recent_results])
         else:

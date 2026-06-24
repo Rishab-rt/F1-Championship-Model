@@ -82,7 +82,7 @@ X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
 )
 
 # --- Train the model ---
-model = XGBRegressor(n_estimators=200, learning_rate=0.1, max_depth=4)
+model = XGBRegressor(n_estimators=400, learning_rate=0.1, max_depth=4)
 model.fit(X_train, y_train, sample_weight=w_train)
 
 # --- Evaluate ---
