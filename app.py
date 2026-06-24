@@ -395,24 +395,31 @@ def predictions():
     driver_features = {}
     for driver in sorted_drivers:
         recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
-        # also add a little section in app.py where the further the races are from today the less value they get for 2026 
-        # Simulate each individual race
-
         avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
-        
         driver_features[driver.name] = {
             "driver_form": avg_position,
             "constructor_form": avg_position,
-            "cumulative_points": driver.points
+            "cumulative_points": driver.points,
+            "circuit_avg": avg_position  # default, gets overwritten per race
         }
-    
+
     projected_points = {driver.name: driver.points for driver in sorted_drivers}
 
     for race_name in remaining_races:
-        if ("Sprint" in race_name):
-            points_scale = [8, 7, 6, 5, 4, 3, 2, 1]
-        else:
-            points_scale = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+        is_sprint = "Sprint" in race_name
+        points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+
+        # Update circuit_avg for this specific race
+        for driver in sorted_drivers:
+            circuit_results = Result.query.filter_by(
+                driver_id=driver.id,
+                race_name=race_name
+            ).order_by(Result.id.desc()).limit(3).all()
+
+            if circuit_results:
+                driver_features[driver.name]["circuit_avg"] = np.mean([r.position for r in circuit_results])
+            else:
+                driver_features[driver.name]["circuit_avg"] = driver_features[driver.name]["driver_form"]
 
         # Estimate grid with noise
         grid_order = sorted(
@@ -428,7 +435,8 @@ def predictions():
                 i + 1,
                 features["driver_form"],
                 features["constructor_form"],
-                features["cumulative_points"]
+                features["cumulative_points"],
+                features["circuit_avg"]
             ]])
             predicted_position = model.predict(X_pred)[0]
             race_predictions.append((driver_name, predicted_position))
@@ -476,6 +484,19 @@ def raceprediction():
             "cumulative_points": driver.points
         }
     
+    # Add circuit-specific bias
+    next_race_name = races[current_race_index]
+    for driver in sorted_drivers:
+    # Find historical results at this specific circuit
+        circuit_results = Result.query.filter_by(driver_id=driver.id,race_name=next_race_name).order_by(Result.id.desc()).limit(3).all()
+        if circuit_results:
+            circuit_avg = np.mean([r.position for r in circuit_results])
+        else:
+        # Fall back to overall driver form if no history at this circuit
+            circuit_avg = driver_features[driver.name]["driver_form"]
+    
+        driver_features[driver.name]["circuit_avg"] = circuit_avg
+    
     # Estimate grid with noise
     grid_order = sorted(
         driver_features.keys(),
@@ -490,7 +511,8 @@ def raceprediction():
             i+1,
             features["driver_form"],
             features["constructor_form"],
-            features["cumulative_points"]
+            features["cumulative_points"],
+            features["circuit_avg"]
         ]])
         predicted_position = model.predict(X_pred)[0]
         race_predictions.append((driver_name, predicted_position))

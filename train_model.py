@@ -51,8 +51,12 @@ def add_features(df):
     df["points_scored"] = df["position"].map(points_map).fillna(0)
     df["cumulative_points"] = df.groupby(["season", "driver_code"])["points_scored"].cumsum().shift(1).fillna(0)
 
+    df["circuit_avg"] = (df.groupby(["driver_code", "race_name"])["position"].transform(lambda x: x.shift(1).rolling(3, min_periods=1).mean()))
+    # Fill NaN with overall driver form for new circuits
+    df["circuit_avg"] = df["circuit_avg"].fillna(df["driver_form"])
+
     # Drop rows with NaN features
-    df = df.dropna(subset=["grid", "position", "driver_form", "constructor_form"])
+    df = df.dropna(subset=["grid", "position", "driver_form", "constructor_form","circuit_avg"])
     
     return df
 
@@ -72,7 +76,7 @@ print(f"Rows after feature engineering: {len(df_all)}")
 print(df_all[["driver_code", "grid", "position", "driver_form", "constructor_form", "cumulative_points"]].head(10))
 
 # --- Define features and target ---
-X = df_all[["grid", "driver_form", "constructor_form", "cumulative_points"]]
+X = df_all[["grid", "driver_form", "constructor_form", "cumulative_points","circuit_avg"]]
 y = df_all["position"]
 weights = df_all["weight"]
 
