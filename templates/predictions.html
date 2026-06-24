@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Season Predictions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
+</head>
+<body>
+<div class="f1-container">
+
+    <div class="f1-header">
+        <h1>Season Predictions</h1>
+        <span class="race-badge">{{ remaining_races|length }} races remaining</span>
+    </div>
+
+    <div class="race-event">
+        <div class="event-label">Disclaimer</div>
+        <div class="event-name" style="font-size: 13px; color: var(--f1-muted);">
+            Simulated using ML model trained on 2023–2026 data. Results vary each run due to probabilistic noise.
+        </div>
+    </div>
+
+    
