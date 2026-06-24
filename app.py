@@ -454,7 +454,20 @@ def predictions():
         current_race_index=current_race_index
     )
 
-@app.route("/race")
+@app.route("/raceprediction")
+def raceprediction():
+
+    model = joblib.load("f1_model.pkl")
+
+    drivers = Driver.query.all()
+    
+
+
+    return render_template(
+        "raceprediction.html",
+
+    )
+
 
 
 
