@@ -23,4 +23,55 @@
         </div>
     </div>
 
-    
+    <div class="f1-card">
+        <h2 class="section-heading">Projected Final Championship</h2>
+        <table class="standings-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Driver</th>
+                    <th>Current Pts</th>
+                    <th>Projected Pts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for driver_name, projected_pts in projected_standings %}
+                <tr>
+                    <td class="pos-cell">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% elif loop.index == 3 %}🥉
+                        {% else %}{{ loop.index }}{% endif %}
+                    </td>
+                    <td class="driver-cell">{{ driver_name }}</td>
+                    <td style="color: var(--f1-muted);">
+                        {% for driver in drivers %}
+                            {% if driver.name == driver_name %}
+                                {{ driver.points }}
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td class="pts-cell">{{ projected_pts | int }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="f1-card" style="margin-top: 16px;">
+        <h2 class="section-heading">Remaining Races</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for race in remaining_races %}
+                <span class="race-edit-pill">{{ race }}</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <a href="/standings" class="btn-ghost-f1">Back to standings</a>
+        <a href="/predictions" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px;">Run again</a>
+    </div>
+
+</div>
+</body>
+</html>
