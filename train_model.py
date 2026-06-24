@@ -1,0 +1,69 @@
+import requests
+import pandas as pd
+import numpy as np
+
+def fetch_season(year):
+    url = f"https://api.jolpi.ca/ergast/f1/{year}/results.json?limit=100"
+    response = requests.get(url)
+    data = response.json()
+    races = data["MRData"]["RaceTable"]["Races"]
+    
+    rows = []
+    for race in races:
+        for result in race["Results"]:
+            rows.append({
+                "season": year,
+                "race_name": race["raceName"],
+                "driver_code": result["Driver"]["code"],
+                "constructor": result["Constructor"]["name"],
+                "grid": result["grid"],
+                "position": result["position"],
+                "status": result["status"],
+            })
+    return pd.DataFrame(rows)
+
+def add_features(df):
+    # Convert to numeric
+    df["grid"] = pd.to_numeric(df["grid"], errors="coerce")
+    df["position"] = pd.to_numeric(df["position"], errors="coerce")
+    
+    # Drop DNFs — position is unreliable for retired cars
+    df = df[df["status"] == "Finished"].copy()
+    
+    # Rolling driver form — average finishing position over last 3 races
+    df = df.sort_values(["driver_code", "season"])
+    df["driver_form"] = (
+        df.groupby("driver_code")["position"]
+        .transform(lambda x: x.shift(1).rolling(3, min_periods=1).mean())
+    )
+    
+    # Rolling constructor form — average finishing position over last 3 races
+    df["constructor_form"] = (
+        df.groupby("constructor")["position"]
+        .transform(lambda x: x.shift(1).rolling(3, min_periods=1).mean())
+    )
+    
+    # Championship position proxy — cumulative points per driver
+    points_map = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
+    df["points_scored"] = df["position"].map(points_map).fillna(0)
+    df["cumulative_points"] = df.groupby(["season", "driver_code"])["points_scored"].cumsum().shift(1).fillna(0)
+
+    # Drop rows with NaN features
+    df = df.dropna(subset=["grid", "position", "driver_form", "constructor_form"])
+    
+    return df
+
+
+# Fetch all seasons and combine into one DataFrame
+season_weights = {2023: 1, 2024: 2, 2025: 3, 2026: 5}
+all_seasons = []
+for year, weight in season_weights.items():
+    print(f"Fetching {year}...")
+    df = fetch_season(year)
+    df["weight"] = weight
+    all_seasons.append(df)
+
+df_all = pd.concat(all_seasons, ignore_index=True)
+df_all = add_features(df_all)
+print(f"Rows after feature engineering: {len(df_all)}")
+print(df_all[["driver_code", "grid", "position", "driver_form", "constructor_form", "cumulative_points"]].head(10))
