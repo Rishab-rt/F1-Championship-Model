@@ -462,7 +462,7 @@ def raceprediction():
     drivers = Driver.query.all()
     sorted_drivers = sorted(drivers, key = lambda d: d.points, reverse=True)
 
-    race = races[:current_race_index]
+    race = races[current_race_index]
     is_sprint = "Sprint" in race
     driver_features = {}
 
@@ -499,7 +499,7 @@ def raceprediction():
     return render_template(
         "raceprediction.html",
         race_predictions=race_predictions,
-        next_race=race,
+        race=race,
         current_race_index=current_race_index
     )
 

@@ -13,7 +13,6 @@
 
     <div class="f1-header">
         <h1>Season Predictions</h1>
-        <span class="race-badge">{{ remaining_races|length }} races remaining</span>
     </div>
 
     <div class="race-event">
@@ -25,47 +24,52 @@
 
     <div class="f1-card">
         <h2 class="section-heading">Projected Final Championship</h2>
+        <div class="podium-container">
+
+            <div class="podium-slot">
+                <div class="podium-name">{{ projected_standings[2][0] }}</div>
+                <div class="podium-pts">{{ projected_standings[2][1] | int }} pts</div>
+                <div class="podium-block p3">3</div>
+            </div>
+
+            <div class="podium-slot">
+                <div class="podium-name">{{ projected_standings[0][0] }}</div>
+                <div class="podium-pts">{{ projected_standings[0][1] | int }} pts</div>
+                <div class="podium-block p1">1</div>
+            </div>
+
+            <div class="podium-slot">
+                <div class="podium-name">{{ projected_standings[1][0] }}</div>
+                <div class="podium-pts">{{ projected_standings[1][1] | int }} pts</div>
+                <div class="podium-block p2">2</div>
+            </div>
+
+       
+        </div>
+        <h2 class="section-heading">Rest of the Field</h2>
         <table class="standings-table">
             <thead>
                 <tr>
                     <th></th>
                     <th>Driver</th>
-                    <th>Current Pts</th>
                     <th>Projected Pts</th>
                 </tr>
             </thead>
             <tbody>
                 {% for driver_name, projected_pts in projected_standings %}
-                <tr>
-                    <td class="pos-cell">
-                        {% if loop.index == 1 %}🥇
-                        {% elif loop.index == 2 %}🥈
-                        {% elif loop.index == 3 %}🥉
-                        {% else %}{{ loop.index }}{% endif %}
-                    </td>
-                    <td class="driver-cell">{{ driver_name }}</td>
-                    <td style="color: var(--f1-muted);">
-                        {% for driver in drivers %}
-                            {% if driver.name == driver_name %}
-                                {{ driver.points }}
-                            {% endif %}
-                        {% endfor %}
-                    </td>
-                    <td class="pts-cell">{{ projected_pts | int }}</td>
-                </tr>
+                    {% if loop.index > 3 %}
+                    <tr>
+                        <td class="pos-cell">{{ loop.index }}</td>
+                        <td class="driver-cell">{{ driver_name }}</td>
+                        <td class="pts-cell">{{ projected_pts | int }}</td>
+                    </tr>
+                    {% endif %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <div class="f1-card" style="margin-top: 16px;">
-        <h2 class="section-heading">Remaining Races</h2>
-        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            {% for race in remaining_races %}
-                <span class="race-edit-pill">{{ race }}</span>
-            {% endfor %}
-        </div>
-    </div>
+   
 
     <div style="display: flex; gap: 8px; margin-top: 16px;">
         <a href="/standings" class="btn-ghost-f1">Back to standings</a>

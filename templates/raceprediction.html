@@ -13,11 +13,30 @@
 
     <div class="f1-header">
         <h1>Race Prediction</h1>
-        <span class="race-badge">{{ next_race }}</span>
+        <span class="race-badge">{{ race }}</span>
     </div>
 
     <div class="f1-card">
         <h2 class="section-heading">Predicted Finishing Order</h2>
+        <div class="podium-container">
+            <!-- P2 -->
+            <div class="podium-slot">
+                <div class="podium-name">{{ race_predictions[1][0] }}</div>
+                <div class="podium-block p2">2</div>
+            </div>
+            <!-- P1 -->
+            <div class="podium-slot">
+                <div class="podium-name">{{ race_predictions[0][0] }}</div>
+                <div class="podium-block p1">1</div>
+            </div>
+            <!-- P3 -->
+            <div class="podium-slot">
+                <div class="podium-name">{{ race_predictions[2][0] }}</div>
+                <div class="podium-block p3">3</div>
+            </div>
+            
+        </div>
+        <h2 class="section-heading">Rest of the Field</h2>
         <table class="standings-table">
             <thead>
                 <tr>
@@ -27,15 +46,12 @@
             </thead>
             <tbody>
                 {% for driver_name, predicted_pos in race_predictions %}
-                <tr>
-                    <td class="pos-cell">
-                        {% if loop.index == 1 %}🥇
-                        {% elif loop.index == 2 %}🥈
-                        {% elif loop.index == 3 %}🥉
-                        {% else %}{{ loop.index }}{% endif %}
-                    </td>
-                    <td class="driver-cell">{{ driver_name }}</td>
-                </tr>
+                    {% if loop.index > 3 %}
+                    <tr>
+                        <td class="pos-cell">{{ loop.index }}</td>
+                        <td class="driver-cell">{{ driver_name }}</td>
+                    </tr>
+                    {% endif %}
                 {% endfor %}
             </tbody>
         </table>
