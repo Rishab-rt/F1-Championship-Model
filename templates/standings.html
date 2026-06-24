@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
 </head>
 <body>
+{% include 'navbar.html' %}
     <div class="f1-container">
 
         <div class="f1-header">
@@ -84,20 +85,6 @@
                 </table>
             </div>
     
-        </div>
-    
-        <div style="display: flex; justify-content: space-between; margin-top: 16px;">
-            <a href="/" class="btn-ghost-f1">Back to race input</a>
-            <a href="/stats" class="btn-ghost-f1">View stats</a>
-            <a href="/predictions" class="btn-ghost-f1">Predictions</a>
-            <a href="/raceprediction" class="btn-ghost-f1">Next race prediction</a>
-            <form action="/reset-season" method="POST" onsubmit="return confirm('Are you sure you want to completely wipe all standings and restart the 2026 season?');">
-                <button type="submit" class="btn-danger-f1">Clear & Restart Season</button>
-            </form>
-
-            <form action="/sync" method="POST">
-                <button type="submit" class="btn-ghost-f1">Sync latest results</button>
-            </form>
         </div>
     
     </div>

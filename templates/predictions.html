@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
 </head>
 <body>
+{% include 'navbar.html' %}
 <div class="f1-container">
 
     <div class="f1-header">
@@ -52,6 +53,7 @@
                 <tr>
                     <th></th>
                     <th>Driver</th>
+                    <th>Team</th>
                     <th>Projected Pts</th>
                 </tr>
             </thead>
@@ -61,6 +63,7 @@
                     <tr>
                         <td class="pos-cell">{{ loop.index }}</td>
                         <td class="driver-cell">{{ driver_name }}</td>
+                        <td><span class="team-pill team-{{ driver_teams[driver_name] | lower | replace(' ', '') }}">{{ driver_teams[driver_name] }}</span></td>
                         <td class="pts-cell">{{ projected_pts | int }}</td>
                     </tr>
                     {% endif %}
@@ -72,7 +75,6 @@
    
 
     <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <a href="/standings" class="btn-ghost-f1">Back to standings</a>
         <a href="/predictions" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px;">Run again</a>
     </div>
 

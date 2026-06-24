@@ -451,7 +451,8 @@ def predictions():
         drivers=sorted_drivers,
         projected_standings=projected_standings,
         remaining_races=remaining_races,
-        current_race_index=current_race_index
+        current_race_index=current_race_index,
+        driver_teams={d.name: d.team for d in sorted_drivers}
     )
 
 @app.route("/raceprediction")

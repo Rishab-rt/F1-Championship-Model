@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
 </head>
 <body>
-<div class="f1-container">
+{% include 'navbar.html' %}
+    <div class="f1-container">
 
     <div class="f1-header">
         <h1>Race Prediction</h1>
@@ -58,7 +59,6 @@
     </div>
 
     <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <a href="/standings" class="btn-ghost-f1">Back to standings</a>
         <a href="/raceprediction" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px;">Run again</a>
     </div>
 
