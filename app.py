@@ -448,6 +448,7 @@ def predictions():
 
     return render_template(
         "predictions.html",
+        drivers=sorted_drivers
         projected_standings=projected_standings,
         remaining_races=remaining_races,
         current_race_index=current_race_index
