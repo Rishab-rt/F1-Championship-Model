@@ -145,7 +145,7 @@ def sync_results():
             print(f"Already there, skipping")
             continue
         
-        print(f" --> Fethcing from OPENF1")
+        print(f" --> Fethcing from OPENF1") 
         # 2. fetch positions from OpenF1
         response = requests.get(f"https://api.openf1.org/v1/position?session_key={session_key}")
         positions = response.json()
