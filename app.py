@@ -458,9 +458,30 @@ def predictions():
 def raceprediction():
 
     model = joblib.load("f1_model.pkl")
-
-    drivers = Driver.query.all()
     
+    drivers = Driver.query.all()
+    sorted_drivers = sorted(drivers, key = lambda d: d.points, reverse=True)
+
+    race = races[:current_race_index]
+    is_sprint = "Sprint" in race
+    driver_features = {}
+
+    for driver in sorted_drivers:
+        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
+        avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
+        driver_features[driver.name] = {
+            "driver_form": avg_position,
+            "constructor_form": avg_position,
+            "cumulative_points": driver.points
+        }
+    
+    
+
+    
+
+
+
+
 
 
     return render_template(
