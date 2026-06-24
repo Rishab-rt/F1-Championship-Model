@@ -399,7 +399,9 @@ def predictions():
         # Simulate each individual race
 
         if recent_results:
-            avg_position = np.mean([r.position for r in recent_results])
+            weights = [1 / (i + 1) for i in range(len(recent_results))]
+            weighted_sum = sum(r.position * w for r, w in zip(recent_results, weights))
+            avg_position = weighted_sum / sum(weights)
         else:
             avg_position = 10.0
         
