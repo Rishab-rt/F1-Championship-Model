@@ -1,3 +1,6 @@
+from xgboost import XGBRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error
 import requests
 import pandas as pd
 import numpy as np
@@ -67,3 +70,27 @@ df_all = pd.concat(all_seasons, ignore_index=True)
 df_all = add_features(df_all)
 print(f"Rows after feature engineering: {len(df_all)}")
 print(df_all[["driver_code", "grid", "position", "driver_form", "constructor_form", "cumulative_points"]].head(10))
+
+# --- Define features and target ---
+X = df_all[["grid", "driver_form", "constructor_form", "cumulative_points"]]
+y = df_all["position"]
+weights = df_all["weight"]
+
+# --- Split into train and test ---
+X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
+    X, y, weights, test_size=0.2, random_state=42
+)
+
+# --- Train the model ---
+model = XGBRegressor(n_estimators=200, learning_rate=0.1, max_depth=4)
+model.fit(X_train, y_train, sample_weight=w_train)
+
+# --- Evaluate ---
+y_pred = model.predict(X_test)
+mae = mean_absolute_error(y_test, y_pred)
+print(f"MAE: {mae:.2f} positions")
+
+# --- Save model ---
+import joblib
+joblib.dump(model, "f1_model.pkl")
+print("Model saved to f1_model.pkl")
