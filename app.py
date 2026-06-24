@@ -1,9 +1,7 @@
-import os
+import os, random, joblib, pandas as pd, numpy as np, requests
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-import pandas as pd
 from dotenv import load_dotenv
-import requests
 
 load_dotenv()
 
@@ -385,6 +383,76 @@ def sync():
     sync_results()
     current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
     return redirect(url_for('standings'))
+
+@app.route("/predictions")
+def predictions():
+    model = joblib.load("f1_model.pkl")
+
+    drivers = Driver.query.all()
+    sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
+    remaining_races = races[current_race_index:]
+
+    driver_features = {}
+    for driver in sorted_drivers:
+        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(5).all()
+        if recent_results:
+            avg_position = np.mean([r.position for r in recent_results])
+        else:
+            avg_position = 10.0
+        
+        driver_features[driver.name] = {
+            "driver_form": avg_position,
+            "constructor_form": avg_position,
+            "cumulative_points": driver.points
+        }
+    
+    projected_points = {driver.name: driver.points for driver in sorted_drivers}
+
+    for race_name in remaining_races:
+        if ("Sprint" in race_name):
+            points_scale = [8, 7, 6, 5, 4, 3, 2, 1]
+        else:
+            points_scale = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+
+        # Estimate grid with noise
+        grid_order = sorted(
+            driver_features.keys(),
+            key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
+        )
+
+        # Build features and predict for each driver
+        race_predictions = []
+        for i, driver_name in enumerate(grid_order):
+            features = driver_features[driver_name]
+            X_pred = np.array([[
+                i + 1,
+                features["driver_form"],
+                features["constructor_form"],
+                features["cumulative_points"]
+            ]])
+            predicted_position = model.predict(X_pred)[0]
+            race_predictions.append((driver_name, predicted_position))
+
+        # Sort by predicted position and award points
+        race_predictions.sort(key=lambda x: x[1])
+        for pos, (driver_name, _) in enumerate(race_predictions):
+            if pos < len(points_scale):
+                projected_points[driver_name] += points_scale[pos]
+
+    # Sort final projected standings
+    projected_standings = sorted(
+        projected_points.items(),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    return render_template(
+        "predictions.html",
+        projected_standings=projected_standings,
+        remaining_races=remaining_races,
+        current_race_index=current_race_index
+    )
+
 
 if __name__ == "__main__":
     with app.app_context():
