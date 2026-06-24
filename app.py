@@ -475,18 +475,32 @@ def raceprediction():
             "cumulative_points": driver.points
         }
     
-    
+    # Estimate grid with noise
+    grid_order = sorted(
+        driver_features.keys(),
+        key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
+    )
 
-    
+    # Predict finishing order
+    race_predictions = []
+    for i, driver_name in enumerate(grid_order):
+        features = driver_features[driver_name]
+        X_pred = np.array([[
+            i+1,
+            features["driver_form"],
+            features["constructor_form"],
+            features["cumulative_points"]
+        ]])
+        predicted_position = model.predict(X_pred)[0]
+        race_predictions.append((driver_name, predicted_position))
 
-
-
-
-
+    race_predictions.sort(key=lambda x: x[1])
 
     return render_template(
         "raceprediction.html",
-
+        race_predictions=race_predictions,
+        next_race=race,
+        current_race_index=current_race_index
     )
 
 
