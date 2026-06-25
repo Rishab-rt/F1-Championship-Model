@@ -1,4 +1,9 @@
-import os, random, joblib, pandas as pd, numpy as np, requests
+import os 
+import random
+import joblib
+import pandas as pd
+import numpy as np
+import requests
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
@@ -7,7 +12,6 @@ model = joblib.load("f1_model.pkl")
 load_dotenv()
 
 app = Flask(__name__)
-
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -24,11 +28,11 @@ class Driver(db.Model):
 
 #Result table
 class Result(db.Model):
-    source = db.Column(db.String(20), default="manual")  # "manual" or "api"
+    source = db.Column(db.String(20), default="manual")
     id = db.Column(db.Integer, primary_key=True)
     driver_id = db.Column(db.Integer, db.ForeignKey('driver.id'), nullable=False)
     race_name = db.Column(db.String(100), nullable=False)
-    position = db.Column(db.Integer, nullable=False) # 1 for win, 2 for second, etc.
+    position = db.Column(db.Integer, nullable=False)
     
     
     # Establish a relationship so a driver can easily pull all their results
@@ -142,14 +146,18 @@ def get_medal_index(index):
 def sync_results():
     for race_name, session_key in race_session_keys.items():
         print(f"Checking {race_name}...")
-        # 1. check if race already exists in DB
-        existing = Result.query.filter_by(race_name=race_name).first()
+        
+        # Only skip if already synced from API — allow overwriting manual entries
+        existing = Result.query.filter_by(race_name=race_name, source="api").first()
         if existing:
-            print(f"Already there, skipping")
+            print(f"Already synced from API, skipping")
             continue
         
-        print(f" --> Fethcing from OPENF1") 
-        # 2. fetch positions from OpenF1
+        # Delete any manual entries for this race before inserting API data
+        Result.query.filter_by(race_name=race_name).delete()
+        db.session.commit()
+
+        print(f" --> Fetching from OpenF1")
         response = requests.get(f"https://api.openf1.org/v1/position?session_key={session_key}")
         positions = response.json()
 
@@ -157,13 +165,11 @@ def sync_results():
             print(f"  → No data returned, skipping")
             continue
 
-        # Keep only the final position for each driver
         final_positions = {}
         for entry in positions:
             driver_number = entry["driver_number"]
             final_positions[driver_number] = entry["position"]
 
-        # Sort by position so we insert in finishing order
         sorted_positions = sorted(final_positions.items(), key=lambda x: x[1])
 
         for driver_number, position in sorted_positions:
@@ -172,11 +178,13 @@ def sync_results():
                 continue
             driver = Driver.query.filter_by(name=driver_name).first()
             if driver:
-                result = Result(driver_id=driver.id, race_name=race_name, position=position)
+                result = Result(driver_id=driver.id, race_name=race_name, position=position, source="api")
                 db.session.add(result)
-        
+
+        db.session.commit()
 
     recalculate_all_points()
+        
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -215,7 +223,7 @@ def index():
                 if driver:
                     driver.points += current_points[i]
 
-                    result = Result(driver_id=driver.id, race_name=current_race, position=i + 1)
+                    result = Result(driver_id=driver.id, race_name=current_race, position=i + 1, source = "manual")
                     db.session.add(result)
             
             # Commit the changes permanently to the cloud
@@ -319,7 +327,7 @@ def edit_race(race_index):
         for i, driver_name in enumerate(entered_drivers):
             driver = Driver.query.filter_by(name=driver_name).first()
             if driver:
-                result = Result(driver_id=driver.id, race_name=race_name, position=i + 1)
+                result = Result(driver_id=driver.id, race_name=race_name, position=i + 1, source = "manual")
                 db.session.add(result)
 
         db.session.commit()
