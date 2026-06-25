@@ -368,13 +368,24 @@ def stats():
         
         timeline[driver.name] = race_points
     
+    # Heatmap data — raw finishing positions per driver per race
+    heatmap = {}
+    for driver in sorted_drivers:
+        positions = []
+        for race_name in races[:current_race_index]:
+            result = Result.query.filter_by(driver_id=driver.id, race_name=race_name).first()
+        positions.append(result.position if result else 0)
+        heatmap[driver.name] = positions
+    
     return render_template(
         "stats.html",
         timeline=timeline,
         race_labels = races[:current_race_index],
         driver_codes=driver_codes,
         top10=top10,
-        current_race_index=current_race_index
+        current_race_index=current_race_index,
+        heatmap=heatmap,
+        all_drivers = sorted_drivers
         )
 
 @app.route("/sync", methods=["POST"])

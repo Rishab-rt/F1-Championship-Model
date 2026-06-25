@@ -514,5 +514,50 @@
   display: block;
 }
 
+.heatmap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  min-width: 600px;
+}
+
+.heatmap-driver-col {
+  font-size: 11px;
+  color: var(--f1-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 0.5px solid var(--f1-border);
+  white-space: nowrap;
+}
+
+.heatmap-race-col {
+  font-size: 10px;
+  color: var(--f1-muted);
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 0.5px solid var(--f1-border);
+  white-space: nowrap;
+}
+
+.heatmap-driver-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--f1-text);
+  padding: 6px 10px;
+  white-space: nowrap;
+  border-right: 0.5px solid var(--f1-border);
+}
+
+.heatmap-cell {
+  text-align: center;
+  padding: 6px 4px;
+  font-weight: 500;
+  border: 0.5px solid rgba(0,0,0,0.1);
+  min-width: 28px;
+}
+
+
   
 
