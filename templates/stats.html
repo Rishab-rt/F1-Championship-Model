@@ -24,6 +24,41 @@
         </div>
     </div>
 
+    <div class="f1-card" style="margin-top: 16px; overflow-x: auto;">
+        <h2 class="section-heading">Driver Form Heatmap</h2>
+        <table class="heatmap-table">
+            <thead>
+                <tr>
+                    <th class="heatmap-driver-col">Driver</th>
+                    {% for race in race_labels %}
+                    <th class="heatmap-race-col">{{ race[:3].upper() }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for driver in all_drivers %}
+                <tr>
+                    <td class="heatmap-driver-name">{{ driver.name }}</td>
+                    {% for pos in heatmap[driver.name] %}
+                    <td class="heatmap-cell" style="background: {{
+                        '#1a6b1a' if pos == 1 else
+                        '#2d8c2d' if pos == 2 else
+                        '#3aab3a' if pos == 3 else
+                        '#6abf6a' if pos <= 5 else
+                        '#a8d5a8' if pos <= 8 else
+                        '#d4a843' if pos <= 12 else
+                        '#c0392b' if pos <= 16 else
+                        '#7b241c' if pos > 16 else
+                        '#1a1a1a'
+                    }}; color: {{ '#ffffff' if pos > 0 else '#444444' }};">
+                        {{ pos if pos > 0 else '-' }}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

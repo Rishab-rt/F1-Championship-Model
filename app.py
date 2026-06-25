@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 
+model = joblib.load("f1_model.pkl")
 load_dotenv()
 
 app = Flask(__name__)
@@ -90,7 +91,7 @@ driver_number_to_name = {
     18: "Stroll",
     11: "Perez",
     77: "Bottas",
-    20: "Sainz",
+    55: "Sainz",
 }
 
 race_session_keys = {
@@ -374,7 +375,7 @@ def stats():
         positions = []
         for race_name in races[:current_race_index]:
             result = Result.query.filter_by(driver_id=driver.id, race_name=race_name).first()
-        positions.append(result.position if result else 0)
+            positions.append(result.position if result else 0)
         heatmap[driver.name] = positions
     
     return render_template(
@@ -397,8 +398,6 @@ def sync():
 
 @app.route("/predictions")
 def predictions():
-    model = joblib.load("f1_model.pkl")
-
     drivers = Driver.query.all()
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
     remaining_races = races[current_race_index:]
@@ -476,9 +475,6 @@ def predictions():
 
 @app.route("/raceprediction")
 def raceprediction():
-
-    model = joblib.load("f1_model.pkl")
-    
     drivers = Driver.query.all()
     sorted_drivers = sorted(drivers, key = lambda d: d.points, reverse=True)
 
