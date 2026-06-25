@@ -24,10 +24,12 @@ class Driver(db.Model):
 
 #Result table
 class Result(db.Model):
+    source = db.Column(db.String(20), default="manual")  # "manual" or "api"
     id = db.Column(db.Integer, primary_key=True)
     driver_id = db.Column(db.Integer, db.ForeignKey('driver.id'), nullable=False)
     race_name = db.Column(db.String(100), nullable=False)
     position = db.Column(db.Integer, nullable=False) # 1 for win, 2 for second, etc.
+    
     
     # Establish a relationship so a driver can easily pull all their results
     driver = db.relationship('Driver', backref=db.backref('results', lazy=True))
