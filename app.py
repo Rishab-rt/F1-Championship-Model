@@ -346,48 +346,97 @@ def stats():
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
     top10 = sorted_drivers[:10]
 
+    # Fetch all results once for efficiency
+    all_results = Result.query.all()
+    results_lookup = {}
+    for r in all_results:
+        key = (r.driver_id, r.race_name)
+        results_lookup[key] = r
+
     timeline = {}
     for driver in top10:
         cumulative = 0
-        race_points = []  
+        race_points = []
         for race_name in races[:current_race_index]:
-            # 1. query Result for this driver + race_name
-            result = Result.query.filter_by(driver_id=driver.id, race_name=race_name).first()
-            # 2. points scale
-            if ("Sprint" in race_name):
+            result = results_lookup.get((driver.id, race_name))
+            if "Sprint" in race_name:
                 points_scale = [8, 7, 6, 5, 4, 3, 2, 1]
             else:
-                points_scale =[25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
-
-            # 3. add points if result exists
+                points_scale = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
             if result and 1 <= result.position <= len(points_scale):
-                cumulative += points_scale[result.position-1]
-
-            # 4. append
+                cumulative += points_scale[result.position - 1]
             race_points.append(cumulative)
-            pass
-        
         timeline[driver.name] = race_points
-    
-    # Heatmap data — raw finishing positions per driver per race
+
+    # Heatmap data
     heatmap = {}
     for driver in sorted_drivers:
         positions = []
         for race_name in races[:current_race_index]:
-            result = Result.query.filter_by(driver_id=driver.id, race_name=race_name).first()
+            result = results_lookup.get((driver.id, race_name))
             positions.append(result.position if result else 0)
         heatmap[driver.name] = positions
-    
+
+    # Group drivers by team
+    teams = {}
+    for driver in sorted_drivers:
+        team = driver.team
+        if team not in teams:
+            teams[team] = []
+        teams[team].append(driver)
+
+    # Head to head stats per team
+    h2h_data = {}
+    for team, team_drivers in teams.items():
+        if len(team_drivers) != 2:
+            continue
+
+        d1, d2 = team_drivers[0], team_drivers[1]
+
+        d1_points = d1.points
+        d2_points = d2.points
+
+        d1_wins = sum(1 for r in d1.results if r.position == 1)
+        d2_wins = sum(1 for r in d2.results if r.position == 1)
+
+        d1_podiums = sum(1 for r in d1.results if r.position <= 3)
+        d2_podiums = sum(1 for r in d2.results if r.position <= 3)
+
+        d1_ahead = 0
+        d2_ahead = 0
+        for race_name in races[:current_race_index]:
+            r1 = results_lookup.get((d1.id, race_name))
+            r2 = results_lookup.get((d2.id, race_name))
+            if r1 and r2:
+                if r1.position < r2.position:
+                    d1_ahead += 1
+                else:
+                    d2_ahead += 1
+
+        h2h_data[team] = {
+            "d1": d1.name,
+            "d2": d2.name,
+            "d1_points": d1_points,
+            "d2_points": d2_points,
+            "d1_wins": d1_wins,
+            "d2_wins": d2_wins,
+            "d1_podiums": d1_podiums,
+            "d2_podiums": d2_podiums,
+            "d1_ahead": d1_ahead,
+            "d2_ahead": d2_ahead,
+        }
+
     return render_template(
         "stats.html",
         timeline=timeline,
-        race_labels = races[:current_race_index],
+        race_labels=races[:current_race_index],
         driver_codes=driver_codes,
         top10=top10,
         current_race_index=current_race_index,
         heatmap=heatmap,
-        all_drivers = sorted_drivers
-        )
+        all_drivers=sorted_drivers,
+        h2h_data=h2h_data
+    )
 
 @app.route("/sync", methods=["POST"])
 def sync():
