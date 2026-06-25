@@ -60,10 +60,83 @@
         </table>
     </div>
 
+    <div class="f1-card" style="margin-top: 16px;">
+        <h2 class="section-heading">Teammate Head to Head</h2>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;">
+            {% for team in h2h_data %}
+            <button class="team-selector-btn" onclick="showTeam('{{ team }}')" id="btn-{{ team | replace(' ', '-') }}">
+                {{ team }}
+            </button>
+            {% endfor %}
+        </div>
+
+        {% for team, data in h2h_data.items() %}
+        <div class="h2h-panel" id="panel-{{ team | replace(' ', '-') }}" data-team="{{ team }}" style="display: none;">
+
+            <div class="h2h-header">
+                <span class="h2h-driver-name" style="text-align: left;">{{ data.d1 }}</span>
+                <span class="h2h-stat-label">vs</span>
+                <span class="h2h-driver-name" style="text-align: right;">{{ data.d2 }}</span>
+            </div>
+
+            {% set total = data.d1_points + data.d2_points %}
+            {% set d1_pct = (data.d1_points / total * 100) if total > 0 else 50 %}
+            <div class="h2h-row">
+                <span class="h2h-value">{{ data.d1_points }}</span>
+                <div class="h2h-bar-container">
+                    <div class="h2h-bar-left" style="width: {{ d1_pct }}%;"></div>
+                    <div class="h2h-bar-right" style="width: {{ 100 - d1_pct }}%;"></div>
+                </div>
+                <span class="h2h-value">{{ data.d2_points }}</span>
+                <span class="h2h-label">Points</span>
+            </div>
+
+            {% set total_wins = data.d1_wins + data.d2_wins %}
+            {% set d1_wins_pct = (data.d1_wins / total_wins * 100) if total_wins > 0 else 50 %}
+            <div class="h2h-row">
+                <span class="h2h-value">{{ data.d1_wins }}</span>
+                <div class="h2h-bar-container">
+                    <div class="h2h-bar-left" style="width: {{ d1_wins_pct }}%;"></div>
+                    <div class="h2h-bar-right" style="width: {{ 100 - d1_wins_pct }}%;"></div>
+                </div>
+                <span class="h2h-value">{{ data.d2_wins }}</span>
+                <span class="h2h-label">Wins</span>
+            </div>
+
+            {% set total_podiums = data.d1_podiums + data.d2_podiums %}
+            {% set d1_pod_pct = (data.d1_podiums / total_podiums * 100) if total_podiums > 0 else 50 %}
+            <div class="h2h-row">
+                <span class="h2h-value">{{ data.d1_podiums }}</span>
+                <div class="h2h-bar-container">
+                    <div class="h2h-bar-left" style="width: {{ d1_pod_pct }}%;"></div>
+                    <div class="h2h-bar-right" style="width: {{ 100 - d1_pod_pct }}%;"></div>
+                </div>
+                <span class="h2h-value">{{ data.d2_podiums }}</span>
+                <span class="h2h-label">Podiums</span>
+            </div>
+
+            {% set total_battles = data.d1_ahead + data.d2_ahead %}
+            {% set d1_battle_pct = (data.d1_ahead / total_battles * 100) if total_battles > 0 else 50 %}
+            <div class="h2h-row">
+                <span class="h2h-value">{{ data.d1_ahead }}</span>
+                <div class="h2h-bar-container">
+                    <div class="h2h-bar-left" style="width: {{ d1_battle_pct }}%;"></div>
+                    <div class="h2h-bar-right" style="width: {{ 100 - d1_battle_pct }}%;"></div>
+                </div>
+                <span class="h2h-value">{{ data.d2_ahead }}</span>
+                <span class="h2h-label">Ahead of teammate</span>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const teamColors = {
+    const driverColors = {
         "Leclerc":    "#DC0000",
         "Hamilton":   "#DC0000",
         "Norris":     "#FF8000",
@@ -88,6 +161,53 @@
         "Bottas":     "#CC0000"
     };
 
+    const teamBarColors = {
+        "Ferrari":      ["#DC0000", "#AE0000"],
+        "McLaren":      ["#FF8000", "#CC6600"],
+        "Mercedes":     ["#00D2BE", "#C0C0C0"],
+        "Red Bull":     ["#1E41FF", "#CC0000"],
+        "Williams":     ["#00A0DE", "#003366"],
+        "Aston Martin": ["#006F62", "#003D36"],
+        "Haas":         ["#B6BABD", "#666666"],
+        "Alpine":       ["#0093CC", "#FF69B4"],
+        "Audi":         ["#E4002B", "#333333"],
+        "Vcarb":        ["#1B3A6B", "#CC0000"],
+        "Cadillac":     ["#CC0000", "#333333"]
+    };
+
+    function showTeam(team) {
+        document.querySelectorAll('.h2h-panel').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.team-selector-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = '';
+            b.style.color = '';
+            b.style.borderColor = '';
+        });
+
+        const panelId = 'panel-' + team.replace(/ /g, '-');
+        const btnId = 'btn-' + team.replace(/ /g, '-');
+        const panel = document.getElementById(panelId);
+        panel.style.display = 'block';
+
+        const colors = teamBarColors[team] || ["#FF8000", "#C0C0C0"];
+
+        // Apply team colors to bars
+        panel.querySelectorAll('.h2h-bar-left').forEach(b => b.style.background = colors[0]);
+        panel.querySelectorAll('.h2h-bar-right').forEach(b => b.style.background = colors[1]);
+
+        // Apply team color to active button
+        const btn = document.getElementById(btnId);
+        btn.classList.add('active');
+        btn.style.background = colors[0];
+        btn.style.color = '#111';
+        btn.style.borderColor = colors[0];
+    }
+
+    window.addEventListener('load', () => {
+        const firstBtn = document.querySelector('.team-selector-btn');
+        if (firstBtn) firstBtn.click();
+    });
+
     const driverCodes = JSON.parse('{{ driver_codes | tojson | safe }}');
     const timelineData = JSON.parse('{{ timeline | tojson | safe }}');
     const raceLabels = JSON.parse('{{ race_labels | tojson | safe }}');
@@ -95,7 +215,7 @@
     const datasets = Object.entries(timelineData).map(([name, points]) => ({
         label: driverCodes[name] || name,
         data: points,
-        borderColor: teamColors[name] || "#888888",
+        borderColor: driverColors[name] || "#888888",
         backgroundColor: "transparent",
         borderWidth: 2,
         pointRadius: 4,
