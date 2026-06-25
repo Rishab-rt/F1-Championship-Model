@@ -82,50 +82,58 @@
 
             {% set total = data.d1_points + data.d2_points %}
             {% set d1_pct = (data.d1_points / total * 100) if total > 0 else 50 %}
+            <!-- Points -->
             <div class="h2h-row">
+                <span class="h2h-label">Points</span>
                 <span class="h2h-value">{{ data.d1_points }}</span>
                 <div class="h2h-bar-container">
                     <div class="h2h-bar-left" style="width: {{ d1_pct }}%;"></div>
                     <div class="h2h-bar-right" style="width: {{ 100 - d1_pct }}%;"></div>
                 </div>
                 <span class="h2h-value">{{ data.d2_points }}</span>
-                <span class="h2h-label">Points</span>
+                <span class="h2h-label" style="text-align: right;">Points</span>
             </div>
 
             {% set total_wins = data.d1_wins + data.d2_wins %}
             {% set d1_wins_pct = (data.d1_wins / total_wins * 100) if total_wins > 0 else 50 %}
+            <!-- Wins -->
             <div class="h2h-row">
+                <span class="h2h-label">Wins</span>
                 <span class="h2h-value">{{ data.d1_wins }}</span>
                 <div class="h2h-bar-container">
                     <div class="h2h-bar-left" style="width: {{ d1_wins_pct }}%;"></div>
                     <div class="h2h-bar-right" style="width: {{ 100 - d1_wins_pct }}%;"></div>
                 </div>
                 <span class="h2h-value">{{ data.d2_wins }}</span>
-                <span class="h2h-label">Wins</span>
+                <span class="h2h-label" style="text-align: right;">Wins</span>
             </div>
 
             {% set total_podiums = data.d1_podiums + data.d2_podiums %}
             {% set d1_pod_pct = (data.d1_podiums / total_podiums * 100) if total_podiums > 0 else 50 %}
+            <!-- Podiums -->
             <div class="h2h-row">
+                <span class="h2h-label">Podiums</span>
                 <span class="h2h-value">{{ data.d1_podiums }}</span>
                 <div class="h2h-bar-container">
                     <div class="h2h-bar-left" style="width: {{ d1_pod_pct }}%;"></div>
                     <div class="h2h-bar-right" style="width: {{ 100 - d1_pod_pct }}%;"></div>
                 </div>
                 <span class="h2h-value">{{ data.d2_podiums }}</span>
-                <span class="h2h-label">Podiums</span>
+                <span class="h2h-label" style="text-align: right;">Podiums</span>
             </div>
 
             {% set total_battles = data.d1_ahead + data.d2_ahead %}
             {% set d1_battle_pct = (data.d1_ahead / total_battles * 100) if total_battles > 0 else 50 %}
+            <!-- Teammate battles -->
             <div class="h2h-row">
+                <span class="h2h-label">Ahead of teammate</span>
                 <span class="h2h-value">{{ data.d1_ahead }}</span>
                 <div class="h2h-bar-container">
                     <div class="h2h-bar-left" style="width: {{ d1_battle_pct }}%;"></div>
                     <div class="h2h-bar-right" style="width: {{ 100 - d1_battle_pct }}%;"></div>
                 </div>
                 <span class="h2h-value">{{ data.d2_ahead }}</span>
-                <span class="h2h-label">Ahead of teammate</span>
+                <span class="h2h-label" style="text-align: right;">Ahead of teammate</span>
             </div>
 
         </div>
@@ -162,17 +170,17 @@
     };
 
     const teamBarColors = {
-        "Ferrari":      ["#DC0000", "#AE0000"],
-        "McLaren":      ["#FF8000", "#CC6600"],
+        "Ferrari":      ["#DC0000", "#FFFFFF"],
+        "McLaren":      ["#FF8000", "#FFFFFF"],
         "Mercedes":     ["#00D2BE", "#C0C0C0"],
         "Red Bull":     ["#1E41FF", "#CC0000"],
-        "Williams":     ["#00A0DE", "#003366"],
-        "Aston Martin": ["#006F62", "#003D36"],
-        "Haas":         ["#B6BABD", "#666666"],
+        "Williams":     ["#00A0DE", "#FFFFFF"],
+        "Aston Martin": ["#006F62", "#CEDC00"],
+        "Haas":         ["#B6BABD", "#333333"],
         "Alpine":       ["#0093CC", "#FF69B4"],
-        "Audi":         ["#E4002B", "#333333"],
+        "Audi":         ["#E4002B", "#999999"],
         "Vcarb":        ["#1B3A6B", "#CC0000"],
-        "Cadillac":     ["#CC0000", "#333333"]
+        "Cadillac":     ["#CC0000", "#FFFFFF"]
     };
 
     function showTeam(team) {
@@ -191,11 +199,9 @@
 
         const colors = teamBarColors[team] || ["#FF8000", "#C0C0C0"];
 
-        // Apply team colors to bars
         panel.querySelectorAll('.h2h-bar-left').forEach(b => b.style.background = colors[0]);
         panel.querySelectorAll('.h2h-bar-right').forEach(b => b.style.background = colors[1]);
 
-        // Apply team color to active button
         const btn = document.getElementById(btnId);
         btn.classList.add('active');
         btn.style.background = colors[0];
