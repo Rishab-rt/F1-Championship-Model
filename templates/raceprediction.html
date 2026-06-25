@@ -35,7 +35,7 @@
                 <div class="podium-name">{{ race_predictions[2][0] }}</div>
                 <div class="podium-block p3">3</div>
             </div>
-            
+
         </div>
         <h2 class="section-heading">Rest of the Field</h2>
         <table class="standings-table">
@@ -57,11 +57,19 @@
             </tbody>
         </table>
     </div>
-
-    <div style="display: flex; gap: 8px; margin-top: 16px;">
-        <a href="/raceprediction" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px;">Run again</a>
+    <div style="display: flex; gap: 8px; margin-top: 16px; align-items: center;">
+        <form action="/save-simulation" method="POST">
+            <input type="hidden" name="num_drivers" value="{{ race_predictions|length }}">
+            {% for driver_name, predicted_pos in race_predictions %}
+            <input type="hidden" name="driver_{{ loop.index0 }}" value="{{ driver_name }}">
+            {% endfor %}
+            <button type="submit" class="btn-papaya-f1"
+                    onclick="return confirm('Save this prediction as the official race result and advance to the next race?')">
+                Save as race result
+            </button>
+        </form>
+        <a href="/raceprediction" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px; display: inline-block;">Run again</a>
     </div>
-
 </div>
 </body>
 </html>

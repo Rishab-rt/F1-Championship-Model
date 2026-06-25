@@ -592,6 +592,35 @@ def raceprediction():
         current_race_index=current_race_index
     )
 
+@app.route("/save-simulation", methods=["POST"])
+def save_simulation():
+    global current_race_index
+    
+    # Get the predicted order from the form
+    race_name = races[current_race_index]
+    num_drivers = int(request.form.get("num_drivers"))
+    
+    # Delete any existing results for this race
+    Result.query.filter_by(race_name=race_name).delete()
+    
+    for i in range(num_drivers):
+        driver_name = request.form.get(f"driver_{i}")
+        if driver_name:
+            driver = Driver.query.filter_by(name=driver_name).first()
+            if driver:
+                result = Result(
+                    driver_id=driver.id,
+                    race_name=race_name,
+                    position=i + 1,
+                    source="simulation"
+                )
+                db.session.add(result)
+    
+    db.session.commit()
+    recalculate_all_points()
+    current_race_index += 1
+    return redirect(url_for('index'))
+
 
 
 
