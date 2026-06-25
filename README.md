@@ -1,58 +1,24 @@
 # 🏎️ F1 Championship Calculator
 
-A Flask-based web application that allows users to simulate an entire Formula 1 season by entering race results and automatically calculating both the Drivers' Championship (WDC) and Constructors' Championship (WCC) standings.
+A Flask + SQLAlchemy + Supabase based web application to simulate the 2026 Formula 1 Season. Currently working on ML Features
 
 ## Features
 
 - Simulate a full Formula 1 season race-by-race
 
-- Supports both:
+- Statistics features such as H2H, Driver HeatMap, and Points Line Graph for the top10
 
-  - Grand Prix events
+- Sync Results with current season results
 
-  - Sprint races
+- Predictions for next race, based on the ML Model
 
-- Automatic points allocation based on FIA scoring rules
+- Predictions for the full season, based on the ML Model
 
-- Live Drivers' Championship standings
+- Edit Race feature to go back in time and change past races
 
-- Live Constructors' Championship standings
-
-- Validation to prevent duplicate driver selections
+- Circuit Specific Bias in the predictions model
 
 - Medal indicators 🥇🥈🥉 for top championship positions
----
-
-## Scoring System
-
-## Grand Prix
-
-| Position | Points |
-|----------|--------|
-| 1st      | 25     |
-| 2nd      | 18     |
-| 3rd      | 15     |
-| 4th      | 12     |
-| 5th      | 10     |
-| 6th      | 8      |
-| 7th      | 6      |
-| 8th      | 4      |
-| 9th      | 2      |
-| 10th     | 1      |
-
-### ⚡ Sprint Points
-
-| Position | Points |
-|----------|--------|
-| 1st      | 8      |
-| 2nd      | 7      |
-| 3rd      | 6      |
-| 4th      | 5      |
-| 5th      | 4      |
-| 6th      | 3      |
-| 7th      | 2      |
-| 8th      | 1      |
-
 ---
 
 ## Technologies Used
@@ -62,3 +28,4 @@ A Flask-based web application that allows users to simulate an entire Formula 1 
 - Pandas
 - HTML
 - Bootstrap
+- PostgreSQL
