@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
+</head>
+<body>
+{% include 'navbar.html' %}
+<div class="f1-container">
+
+    <div class="f1-header">
+        <h1>Circuit Guide</h1>
+        <span class="race-badge">2026 Season</span>
+    </div>
+
+    <!-- Circuit selector -->
+    <div class="f1-card" style="margin-bottom: 16px;">
+        <h5 class="section-label">Select a circuit</h5>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for circuit in circuits %}
+            <button class="race-edit-pill" onclick="showCircuit('{{ circuit.circuitId }}')">
+                {{ circuit.Location.locality }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Circuit detail panels -->
+    {% for circuit in circuits %}
+    <div class="f1-card circuit-panel" id="circuit-{{ circuit.circuitId }}" style="display: none;">
+        <h2 class="section-heading">{{ circuit.circuitName }}</h2>
+        <div class="race-event" style="margin-bottom: 16px;">
+            <div class="event-label">Location</div>
+            <div class="event-name">{{ circuit.Location.locality }}, {{ circuit.Location.country }}</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="{{ circuit.url }}" target="_blank" class="btn-ghost-f1">Wikipedia</a>
+        </div>
+        <div id="map-{{ circuit.circuitId }}" style="margin-top: 16px; height: 300px; background: var(--f1-surface); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--f1-muted);">
+            <iframe
+                width="100%"
+                height="300"
+                frameborder="0"
+                style="border-radius: 8px;"
+                src="https://www.openstreetmap.org/export/embed.html?bbox={{ circuit.Location.long|float - 0.01 }},{{ circuit.Location.lat|float - 0.01 }},{{ circuit.Location.long|float + 0.01 }},{{ circuit.Location.lat|float + 0.01 }}&layer=mapnik&marker={{ circuit.Location.lat }},{{ circuit.Location.long }}">
+            </iframe>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<script>
+function showCircuit(id) {
+    document.querySelectorAll('.circuit-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.race-edit-pill').forEach(b => {
+        b.style.borderColor = '';
+        b.style.color = '';
+    });
+    document.getElementById('circuit-' + id).style.display = 'block';
+    event.target.style.borderColor = 'var(--f1-papaya)';
+    event.target.style.color = 'var(--f1-papaya)';
+}
+
+// Show first circuit by default
+window.addEventListener('load', () => {
+    const firstBtn = document.querySelector('.race-edit-pill');
+    if (firstBtn) firstBtn.click();
+});
+</script>
+</body>
+</html>

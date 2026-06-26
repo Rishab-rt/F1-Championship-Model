@@ -621,6 +621,19 @@ def save_simulation():
     current_race_index += 1
     return redirect(url_for('index'))
 
+@app.route("/circuitguide")
+def circuitguide():
+    response = requests.get("https://api.jolpi.ca/ergast/f1/2026/circuits.json")
+    data = response.json()
+    circuits = data["MRData"]["CircuitTable"]["Circuits"]
+    
+    return render_template(
+        "circuitguide.html",
+        circuits=circuits,
+        races=races,
+        current_race_index=current_race_index
+    )
+
 
 
 
