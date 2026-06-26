@@ -114,6 +114,34 @@ race_session_keys = {
     "Austrian Grand Prix": 11315,
 }
 
+circuit_info = {
+    "albert_park": {"length": "5.278 km", "laps": 58, "lap_record": "1:20.235", "lap_record_holder": "Leclerc (2022)", "type": "Street"},
+    "americas": {"length": "5.513 km", "laps": 56, "lap_record": "1:36.169", "lap_record_holder": "Leclerc (2019)", "type": "Permanent"},
+    "baku": {"length": "6.003 km", "laps": 51, "lap_record": "1:43.009", "lap_record_holder": "Leclerc (2019)", "type": "Street"},
+    "catalunya": {"length": "4.675 km", "laps": 66, "lap_record": "1:16.330", "lap_record_holder": "Verstappen (2021)", "type": "Permanent"},
+    "hungaroring": {"length": "4.381 km", "laps": 70, "lap_record": "1:16.627", "lap_record_holder": "Hamilton (2020)", "type": "Permanent"},
+    "interlagos": {"length": "4.309 km", "laps": 71, "lap_record": "1:10.540", "lap_record_holder": "Verstappen (2023)", "type": "Permanent"},
+    "jeddah": {"length": "6.174 km", "laps": 50, "lap_record": "1:30.734", "lap_record_holder": "Leclerc (2022)", "type": "Street"},
+    "las_vegas": {"length": "6.201 km", "laps": 50, "lap_record": "1:35.490", "lap_record_holder": "Leclerc (2023)", "type": "Street"},
+    "lusail": {"length": "5.380 km", "laps": 57, "lap_record": "1:24.319", "lap_record_holder": "Russell (2023)", "type": "Permanent"},
+    "miami": {"length": "5.412 km", "laps": 57, "lap_record": "1:29.708", "lap_record_holder": "Verstappen (2023)", "type": "Street"},
+    "monaco": {"length": "3.337 km", "laps": 78, "lap_record": "1:12.909", "lap_record_holder": "Leclerc (2024)", "type": "Street"},
+    "monza": {"length": "5.793 km", "laps": 53, "lap_record": "1:21.046", "lap_record_holder": "Barrichello (2004)", "type": "Permanent"},
+    "monte_carlo": {"length": "3.337 km", "laps": 78, "lap_record": "1:12.909", "lap_record_holder": "Leclerc (2024)", "type": "Street"},
+    "montreal": {"length": "4.361 km", "laps": 70, "lap_record": "1:13.078", "lap_record_holder": "Bottas (2019)", "type": "Street"},
+    "red_bull_ring": {"length": "4.318 km", "laps": 71, "lap_record": "1:05.619", "lap_record_holder": "Leclerc (2020)", "type": "Permanent"},
+    "shanghai": {"length": "5.451 km", "laps": 56, "lap_record": "1:32.238", "lap_record_holder": "Verstappen (2024)", "type": "Permanent"},
+    "silverstone": {"length": "5.891 km", "laps": 52, "lap_record": "1:27.097", "lap_record_holder": "Hamilton (2020)", "type": "Permanent"},
+    "singapore": {"length": "4.940 km", "laps": 62, "lap_record": "1:35.867", "lap_record_holder": "Leclerc (2023)", "type": "Street"},
+    "spa": {"length": "7.004 km", "laps": 44, "lap_record": "1:46.286", "lap_record_holder": "Bottas (2018)", "type": "Permanent"},
+    "suzuka": {"length": "5.807 km", "laps": 53, "lap_record": "1:30.983", "lap_record_holder": "Verstappen (2023)", "type": "Permanent"},
+    "villeneuve": {"length": "4.361 km", "laps": 70, "lap_record": "1:13.078", "lap_record_holder": "Bottas (2019)", "type": "Street"},
+    "yas_marina": {"length": "5.281 km", "laps": 58, "lap_record": "1:26.103", "lap_record_holder": "Leclerc (2021)", "type": "Permanent"},
+    "zandvoort": {"length": "4.259 km", "laps": 72, "lap_record": "1:11.097", "lap_record_holder": "Verstappen (2021)", "type": "Permanent"},
+    "madring": {"length": "5.059 km", "laps": 59, "lap_record": "N/A", "lap_record_holder": "N/A", "type": "Street"},
+}
+
+
 def recalculate_all_points():
     # Zero out everyone first
     db.session.query(Driver).update({Driver.points: 0})
@@ -626,12 +654,44 @@ def circuitguide():
     response = requests.get("https://api.jolpi.ca/ergast/f1/2026/circuits.json")
     data = response.json()
     circuits = data["MRData"]["CircuitTable"]["Circuits"]
-    
+
+    # Fetch 2026 results
+    results_2026 = requests.get("https://api.jolpi.ca/ergast/f1/2026/results.json?limit=100").json()
+    races_2026 = results_2026["MRData"]["RaceTable"]["Races"]
+
+    # Fetch 2025 results as fallback
+    results_2025 = requests.get("https://api.jolpi.ca/ergast/f1/2025/results.json?limit=100").json()
+    races_2025 = results_2025["MRData"]["RaceTable"]["Races"]
+
+    # Build winner lookup — 2026 takes priority, fall back to 2025
+    recent_winners = {}
+
+    for race in races_2025:
+        circuit_id = race["Circuit"]["circuitId"]
+        if race["Results"]:
+            winner = race["Results"][0]["Driver"]
+            recent_winners[circuit_id] = {
+                "name": f"{winner['givenName']} {winner['familyName']}",
+                "year": "2025"
+            }
+
+    # 2026 overwrites 2025 where available
+    for race in races_2026:
+        circuit_id = race["Circuit"]["circuitId"]
+        if race["Results"]:
+            winner = race["Results"][0]["Driver"]
+            recent_winners[circuit_id] = {
+                "name": f"{winner['givenName']} {winner['familyName']}",
+                "year": "2026"
+            }
+
     return render_template(
         "circuitguide.html",
         circuits=circuits,
         races=races,
-        current_race_index=current_race_index
+        current_race_index=current_race_index,
+        circuit_info=circuit_info,
+        recent_winners=recent_winners
     )
 
 
