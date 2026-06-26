@@ -260,6 +260,63 @@ def get_race_weather(lat, lon, race_date_str):
     except Exception:
         return 0.0, 20.0
 
+def get_quali_grid(race_name):
+    """
+    Fetch qualifying grid positions from OpenF1 for the given race.
+    Returns a dict of {driver_name: grid_position} or None if not available.
+    """
+    try:
+        # Step 1 — get the session key for qualifying at this race's meeting
+        race_session_key = race_session_keys.get(race_name)
+        if not race_session_key:
+            return None
+
+        # Step 2 — find the qualifying session in the same meeting
+        r = requests.get(
+            f"https://api.openf1.org/v1/sessions?meeting_key="
+            f"{get_meeting_key(race_session_key)}&session_type=Qualifying",
+            timeout=10
+        ).json()
+        if not r:
+            return None
+        quali_session_key = r[0]["session_key"]
+
+        # Step 3 — fetch final positions from that quali session
+        positions_r = requests.get(
+            f"https://api.openf1.org/v1/position?session_key={quali_session_key}",
+            timeout=10
+        ).json()
+        if not positions_r:
+            return None
+
+        # Keep only the last position entry per driver (final classified position)
+        latest = {}
+        for entry in positions_r:
+            num = entry["driver_number"]
+            latest[num] = entry["position"]
+
+        # Step 4 — map driver numbers to names using your existing lookup
+        grid = {}
+        for driver_num, pos in latest.items():
+            name = driver_number_to_name.get(driver_num)
+            if name:
+                grid[name] = pos
+
+        return grid if grid else None
+
+    except Exception:
+        return None
+
+
+def get_meeting_key(session_key):
+    """Get the meeting key for a given race session key."""
+    r = requests.get(
+        f"https://api.openf1.org/v1/sessions?session_key={session_key}",
+        timeout=10
+    ).json()
+    return r[0]["meeting_key"]
+
+
 def sync_results():
     for race_name, session_key in race_session_keys.items():
         print(f"Checking {race_name}...")
@@ -578,13 +635,29 @@ def predictions():
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
     remaining_races = races[current_race_index:]
 
+    team_results = {}
+    for driver in sorted_drivers:
+        recent = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(5).all()
+        team_results[driver.name] = {
+            "team": driver.team,
+            "avg": np.mean([r.position for r in recent]) if recent else 10.0
+        }
+
     driver_features = {}
     for driver in sorted_drivers:
         recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
         avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
+
+        # Teammate's avg as constructor_form
+        teammate_avgs = [
+            v["avg"] for k, v in team_results.items()
+            if v["team"] == driver.team and k != driver.name
+        ]
+        constructor_form = np.mean(teammate_avgs) if teammate_avgs else avg_position
+
         driver_features[driver.name] = {
             "driver_form": avg_position,
-            "constructor_form": avg_position,
+            "constructor_form": constructor_form,  # ← real constructor signal now
             "cumulative_points": driver.points,
             "circuit_avg": avg_position
         }
@@ -682,16 +755,29 @@ def raceprediction():
             circuit_avg = driver_features[driver.name]["driver_form"]
         driver_features[driver.name]["circuit_avg"] = circuit_avg
 
-    grid_order = sorted(
-        driver_features.keys(),
-        key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
-    )
+    # --- Try to fetch real quali grid, fall back to estimated ---
+    quali_grid = get_quali_grid(race)
+    quali_used = quali_grid is not None
+
+    if quali_used:
+        # Sort drivers by their actual quali position
+        grid_order = sorted(
+            driver_features.keys(),
+            key=lambda name: quali_grid.get(name, 20)  # unknown drivers start last
+        )
+    else:
+        # Fall back to noisy estimate as before
+        grid_order = sorted(
+            driver_features.keys(),
+            key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
+        )
 
     race_predictions = []
     for i, driver_name in enumerate(grid_order):
         features = driver_features[driver_name]
+        grid_pos = quali_grid.get(driver_name, i + 1) if quali_used else i + 1
         X_pred = np.array([[
-            i + 1,
+            grid_pos,
             features["driver_form"],
             features["constructor_form"],
             features["cumulative_points"],
@@ -710,7 +796,8 @@ def raceprediction():
         race=race,
         current_race_index=current_race_index,
         rain_mm=rain_mm,
-        temp_c=temp_c
+        temp_c=temp_c,
+        quali_used=quali_used  # lets the template show a badge
     )
 
 @app.route("/save-simulation", methods=["POST"])

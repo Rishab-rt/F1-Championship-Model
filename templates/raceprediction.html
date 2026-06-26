@@ -17,7 +17,11 @@
         <span class="race-badge" style="background: {{ 'var(--f1-red)' if rain_mm > 2 else 'var(--f1-surface)' }};">
             {{ '🌧' if rain_mm > 2 else '☀️' }} {{ rain_mm }}mm · {{ temp_c }}°C
         </span>
+        <span class="race-badge" style="background: {{ 'var(--f1-teal)' if quali_used else 'var(--f1-surface)' }};">
+            {{ '📡 Live Quali Grid' if quali_used else '📊 Estimated Grid' }}
+        </span>
     </div>
+    
 
     <div class="f1-header">
         <h1>Race Prediction</h1>
