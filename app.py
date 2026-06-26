@@ -684,31 +684,30 @@ def circuitguide():
         if offset >= total:
             break
 
-    print(f"2025 races fetched: {len(races_2025)}")
-    print(f"2026 races fetched: {len(races_2026)}")
-
-    # Build winner lookup — 2025 first, 2026 overwrites where available
+    # Build winner lookup — deduplicate by circuitId
     recent_winners = {}
 
     for race in races_2025:
         circuit_id = race["Circuit"]["circuitId"]
+        if circuit_id in recent_winners:
+            continue
         if race.get("Results"):
-            winner = race["Results"][0]["Driver"]
-            recent_winners[circuit_id] = {
-                "name": f"{winner['givenName']} {winner['familyName']}",
-                "year": "2025"
-            }
+            winner = next((r for r in race["Results"] if r["position"] == "1"), None)
+            if winner:
+                recent_winners[circuit_id] = {
+                    "name": f"{winner['Driver']['givenName']} {winner['Driver']['familyName']}",
+                    "year": "2025"
+                }
 
     for race in races_2026:
         circuit_id = race["Circuit"]["circuitId"]
         if race.get("Results"):
-            winner = race["Results"][0]["Driver"]
-            recent_winners[circuit_id] = {
-                "name": f"{winner['givenName']} {winner['familyName']}",
-                "year": "2026"
-            }
-
-    print(f"recent_winners keys: {list(recent_winners.keys())}")
+            winner = next((r for r in race["Results"] if r["position"] == "1"), None)
+            if winner:
+                recent_winners[circuit_id] = {
+                    "name": f"{winner['Driver']['givenName']} {winner['Driver']['familyName']}",
+                    "year": "2026"
+                }
 
     return render_template(
         "circuitguide.html",
@@ -718,7 +717,6 @@ def circuitguide():
         circuit_info=circuit_info,
         recent_winners=recent_winners
     )
-
 
 
 
