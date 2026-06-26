@@ -10,7 +10,7 @@
 </head>
 <body>
 {% include 'navbar.html' %}
-<div class="f1-container">
+<div class="f1-container" style="max-width: 1100px;">
 
     <div class="f1-header">
         <h1>Circuit Guide</h1>
@@ -22,7 +22,9 @@
         <h5 class="section-label">Select a circuit</h5>
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
             {% for circuit in circuits %}
-            <button class="race-edit-pill" onclick="showCircuit('{{ circuit.circuitId }}')">
+            <button class="circuit-btn race-edit-pill"
+                    id="btn-{{ circuit.circuitId }}"
+                    onclick="showCircuit('{{ circuit.circuitId }}', this)">
                 {{ circuit.Location.locality }}
             </button>
             {% endfor %}
@@ -31,44 +33,81 @@
 
     <!-- Circuit detail panels -->
     {% for circuit in circuits %}
-    <div class="f1-card circuit-panel" id="circuit-{{ circuit.circuitId }}" style="display: none;">
-        <h2 class="section-heading">{{ circuit.circuitName }}</h2>
-        <div class="race-event" style="margin-bottom: 16px;">
-            <div class="event-label">Location</div>
-            <div class="event-name">{{ circuit.Location.locality }}, {{ circuit.Location.country }}</div>
+    {% set info = circuit_info.get(circuit.circuitId, {}) %}
+    {% set winner = recent_winners.get(circuit.circuitId, {}) %}
+    <div class="circuit-panel f1-card" id="circuit-{{ circuit.circuitId }}" style="display: none;">
+
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div>
+                <h2 class="section-heading" style="font-size: 28px; margin-bottom: 4px;">{{ circuit.circuitName }}</h2>
+                <div style="color: var(--f1-muted); font-size: 14px;">{{ circuit.Location.locality }}, {{ circuit.Location.country }}</div>
+            </div>
+            <span class="race-badge" style="background: {{ 'var(--f1-red)' if info.get('type') == 'Street' else 'var(--f1-surface)' }};">
+                {{ info.get("type", "N/A") }}
+            </span>
         </div>
-        <div style="display: flex; gap: 8px;">
-            <a href="{{ circuit.url }}" target="_blank" class="btn-ghost-f1">Wikipedia</a>
+
+        <!-- Sky Sports style stat cards -->
+        <div class="circuit-stats-grid">
+            <div class="circuit-stat-card">
+                <div class="circuit-stat-label">Track Length</div>
+                <div class="circuit-stat-value">{{ info.get("length", "N/A") }}</div>
+            </div>
+            <div class="circuit-stat-card">
+                <div class="circuit-stat-label">Laps</div>
+                <div class="circuit-stat-value">{{ info.get("laps", "N/A") }}</div>
+            </div>
+            <div class="circuit-stat-card">
+                <div class="circuit-stat-label">Lap Record</div>
+                <div class="circuit-stat-value">{{ info.get("lap_record", "N/A") }}</div>
+                <div class="circuit-stat-sub">{{ info.get("lap_record_holder", "") }}</div>
+            </div>
+            <div class="circuit-stat-card">
+                <div class="circuit-stat-label">Most Recent Winner</div>
+                <div class="circuit-stat-value" style="font-size: 18px;">{{ winner.get("name", "TBD") }}</div>
+                <div class="circuit-stat-sub">{{ winner.get("year", "") }} Grand Prix</div>
+            </div>
         </div>
-        <div id="map-{{ circuit.circuitId }}" style="margin-top: 16px; height: 300px; background: var(--f1-surface); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--f1-muted);">
-            <iframe
-                width="100%"
-                height="300"
-                frameborder="0"
-                style="border-radius: 8px;"
-                src="https://www.openstreetmap.org/export/embed.html?bbox={{ circuit.Location.long|float - 0.01 }},{{ circuit.Location.lat|float - 0.01 }},{{ circuit.Location.long|float + 0.01 }},{{ circuit.Location.lat|float + 0.01 }}&layer=mapnik&marker={{ circuit.Location.lat }},{{ circuit.Location.long }}">
-            </iframe>
+
+        <!-- Map -->
+        <div style="margin-top: 16px;">
+            <div class="section-label" style="margin-bottom: 8px;">Location</div>
+            <div style="background: var(--f1-surface); border: 0.5px solid var(--f1-border); border-radius: 8px; overflow: hidden; height: 280px;">
+                <iframe
+                    width="100%"
+                    height="280"
+                    frameborder="0"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q={{ circuit.Location.lat }},{{ circuit.Location.long }}&z=14&output=embed">
+                </iframe>
+            </div>
         </div>
+
+        <!-- Wikipedia link -->
+        <div style="margin-top: 12px;">
+            <a href="{{ circuit.url }}" target="_blank" class="btn-ghost-f1">📖 Read on Wikipedia</a>
+        </div>
+
     </div>
     {% endfor %}
 
 </div>
 
 <script>
-function showCircuit(id) {
+function showCircuit(id, btn) {
     document.querySelectorAll('.circuit-panel').forEach(p => p.style.display = 'none');
-    document.querySelectorAll('.race-edit-pill').forEach(b => {
+    document.querySelectorAll('.circuit-btn').forEach(b => {
         b.style.borderColor = '';
         b.style.color = '';
     });
     document.getElementById('circuit-' + id).style.display = 'block';
-    event.target.style.borderColor = 'var(--f1-papaya)';
-    event.target.style.color = 'var(--f1-papaya)';
+    btn.style.borderColor = 'var(--f1-papaya)';
+    btn.style.color = 'var(--f1-papaya)';
 }
 
-// Show first circuit by default
 window.addEventListener('load', () => {
-    const firstBtn = document.querySelector('.race-edit-pill');
+    const firstBtn = document.querySelector('.circuit-btn');
     if (firstBtn) firstBtn.click();
 });
 </script>
