@@ -635,84 +635,82 @@ def predictions():
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
     remaining_races = races[current_race_index:]
 
-    team_results = {}
-    for driver in sorted_drivers:
-        recent = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(5).all()
-        team_results[driver.name] = {
-            "team": driver.team,
-            "avg": np.mean([r.position for r in recent]) if recent else 10.0
-        }
-
     driver_features = {}
     for driver in sorted_drivers:
         recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
         avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
-
-        # Teammate's avg as constructor_form
-        teammate_avgs = [
-            v["avg"] for k, v in team_results.items()
-            if v["team"] == driver.team and k != driver.name
-        ]
-        constructor_form = np.mean(teammate_avgs) if teammate_avgs else avg_position
-
         driver_features[driver.name] = {
             "driver_form": avg_position,
-            "constructor_form": constructor_form,  # ← real constructor signal now
+            "constructor_form": avg_position,
             "cumulative_points": driver.points,
             "circuit_avg": avg_position
         }
 
-    projected_points = {driver.name: driver.points for driver in sorted_drivers}
+    all_driver_names = [d.name for d in sorted_drivers]
+    N_SIMS = 10
 
+    # Track total projected points and championship position counts across sims
+    total_points = {name: 0 for name in all_driver_names}
+    championship_counts = {name: 0 for name in all_driver_names}  # times finishing P1 in championship
+
+    # Fetch weather for all remaining races ONCE before the sim loop
+    race_weather_cache = {}
     for race_name in remaining_races:
-        is_sprint = "Sprint" in race_name
-        points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
-
-        # Fetch weather per race
         lat, lon = race_coords.get(race_name, ("0", "0"))
         race_date = race_dates.get(race_name, str(date_type.today()))
-        rain_mm, temp_c = get_race_weather(lat, lon, race_date)
+        race_weather_cache[race_name] = get_race_weather(lat, lon, race_date)
 
-        for driver in sorted_drivers:
-            circuit_results = Result.query.filter_by(
-                driver_id=driver.id,
-                race_name=race_name
-            ).order_by(Result.id.desc()).limit(3).all()
-            if circuit_results:
-                driver_features[driver.name]["circuit_avg"] = np.mean([r.position for r in circuit_results])
-            else:
-                driver_features[driver.name]["circuit_avg"] = driver_features[driver.name]["driver_form"]
+    for _ in range(N_SIMS):
+        sim_features = {name: dict(feats) for name, feats in driver_features.items()}
+        projected_points = {name: drivers[i].points for i, name in enumerate(all_driver_names)}
 
-        grid_order = sorted(
-            driver_features.keys(),
-            key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 3)
-        )
+        for race_name in remaining_races:
+            is_sprint = "Sprint" in race_name
+            points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 
-        race_predictions = []
-        for i, driver_name in enumerate(grid_order):
-            features = driver_features[driver_name]
-            X_pred = np.array([[
-                i + 1,
-                features["driver_form"],
-                features["constructor_form"],
-                features["cumulative_points"],
-                features["circuit_avg"],
-                rain_mm,
-                temp_c
-            ]])
-            predicted_position = model.predict(X_pred)[0]
-            race_predictions.append((driver_name, predicted_position))
+            rain_mm, temp_c = race_weather_cache[race_name]
 
-        race_predictions.sort(key=lambda x: x[1])
-        for pos, (driver_name, _) in enumerate(race_predictions):
-            if pos < len(points_scale):
-                projected_points[driver_name] += points_scale[pos]
+            for driver in sorted_drivers:
+                circuit_results = Result.query.filter_by(driver_id=driver.id, race_name=race_name).order_by(Result.id.desc()).limit(current_race_index).all()
+                sim_features[driver.name]["circuit_avg"] = (
+                    np.mean([r.position for r in circuit_results])
+                    if circuit_results else sim_features[driver.name]["driver_form"]
+                )
 
-    projected_standings = sorted(
-        projected_points.items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
+            grid_order = sorted(all_driver_names, key=lambda name: sim_features[name]["driver_form"] + random.gauss(0, 3))
+
+            race_preds = []
+            for i, driver_name in enumerate(grid_order):
+                features = sim_features[driver_name]
+                X_pred = np.array([[
+                    i + 1,
+                    features["driver_form"],
+                    features["constructor_form"],
+                    features["cumulative_points"],
+                    features["circuit_avg"],
+                    rain_mm,
+                    temp_c
+                ]])
+                predicted_position = model.predict(X_pred)[0]
+                race_preds.append((driver_name, predicted_position))
+
+            race_preds.sort(key=lambda x: x[1])
+            for pos, (driver_name, _) in enumerate(race_preds):
+                if pos < len(points_scale):
+                    projected_points[driver_name] += points_scale[pos]
+
+        # Who won the championship in this sim?
+        champion = max(projected_points, key=projected_points.get)
+        championship_counts[champion] += 1
+
+        for name in all_driver_names:
+            total_points[name] += projected_points[name]
+
+    # Average points across all sims
+    avg_points = {name: round(total_points[name] / N_SIMS) for name in all_driver_names}
+    championship_pct = {name: round((championship_counts[name] / N_SIMS) * 100) for name in all_driver_names}
+
+    projected_standings = sorted(avg_points.items(), key=lambda x: x[1], reverse=True)
 
     return render_template(
         "predictions.html",
@@ -720,7 +718,8 @@ def predictions():
         projected_standings=projected_standings,
         remaining_races=remaining_races,
         current_race_index=current_race_index,
-        driver_teams={d.name: d.team for d in sorted_drivers}
+        driver_teams={d.name: d.team for d in sorted_drivers},
+        championship_pct=championship_pct
     )
 
 @app.route("/raceprediction")
@@ -731,7 +730,6 @@ def raceprediction():
     race = races[current_race_index]
     is_sprint = "Sprint" in race
 
-    # Fetch weather for this race
     lat, lon = race_coords.get(race, ("0", "0"))
     race_date = race_dates.get(race, str(date_type.today()))
     rain_mm, temp_c = get_race_weather(lat, lon, race_date)
@@ -748,45 +746,64 @@ def raceprediction():
 
     next_race_name = races[current_race_index]
     for driver in sorted_drivers:
-        circuit_results = Result.query.filter_by(driver_id=driver.id, race_name=next_race_name).order_by(Result.id.desc()).limit(3).all()
+        circuit_results = Result.query.filter_by(driver_id=driver.id, race_name=next_race_name).order_by(Result.id.desc()).limit(current_race_index).all()
         if circuit_results:
             circuit_avg = np.mean([r.position for r in circuit_results])
         else:
             circuit_avg = driver_features[driver.name]["driver_form"]
         driver_features[driver.name]["circuit_avg"] = circuit_avg
 
-    # --- Try to fetch real quali grid, fall back to estimated ---
     quali_grid = get_quali_grid(race)
     quali_used = quali_grid is not None
 
-    if quali_used:
-        # Sort drivers by their actual quali position
-        grid_order = sorted(
-            driver_features.keys(),
-            key=lambda name: quali_grid.get(name, 20)  # unknown drivers start last
-        )
-    else:
-        # Fall back to noisy estimate as before
-        grid_order = sorted(
-            driver_features.keys(),
-            key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
-        )
+    # --- Monte Carlo: 1000 simulations ---
+    N_SIMS = 1000
+    all_driver_names = [d.name for d in sorted_drivers]
+    
+    # Track per-driver position counts across simulations
+    position_counts = {name: {} for name in all_driver_names}
+    podium_counts = {name: 0 for name in all_driver_names}
 
+    for _ in range(N_SIMS):
+        if quali_used:
+            grid_order = sorted(all_driver_names, key=lambda name: quali_grid.get(name, 20))
+        else:
+            grid_order = sorted(all_driver_names, key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2))
+
+        sim_predictions = []
+        for i, driver_name in enumerate(grid_order):
+            features = driver_features[driver_name]
+            grid_pos = quali_grid.get(driver_name, i + 1) if quali_used else i + 1
+            X_pred = np.array([[
+                grid_pos,
+                features["driver_form"],
+                features["constructor_form"],
+                features["cumulative_points"],
+                features["circuit_avg"],
+                rain_mm,
+                temp_c
+            ]])
+            predicted_position = model.predict(X_pred)[0]
+            sim_predictions.append((driver_name, predicted_position))
+
+        sim_predictions.sort(key=lambda x: x[1])
+
+        for pos, (driver_name, _) in enumerate(sim_predictions):
+            actual_pos = pos + 1
+            position_counts[driver_name][actual_pos] = position_counts[driver_name].get(actual_pos, 0) + 1
+            if actual_pos <= 3:
+                podium_counts[driver_name] += 1
+
+    # --- Final prediction: most common finishing position per driver ---
     race_predictions = []
-    for i, driver_name in enumerate(grid_order):
-        features = driver_features[driver_name]
-        grid_pos = quali_grid.get(driver_name, i + 1) if quali_used else i + 1
-        X_pred = np.array([[
-            grid_pos,
-            features["driver_form"],
-            features["constructor_form"],
-            features["cumulative_points"],
-            features["circuit_avg"],
-            rain_mm,
-            temp_c
-        ]])
-        predicted_position = model.predict(X_pred)[0]
-        race_predictions.append((driver_name, predicted_position))
+    for driver_name in all_driver_names:
+        counts = position_counts[driver_name]
+        if counts:
+            most_common_pos = max(counts, key=counts.get)
+        else:
+            most_common_pos = 20
+        podium_pct = round((podium_counts[driver_name] / N_SIMS) * 100)
+        race_predictions.append((driver_name, most_common_pos, podium_pct))
 
     race_predictions.sort(key=lambda x: x[1])
 
@@ -797,7 +814,7 @@ def raceprediction():
         current_race_index=current_race_index,
         rain_mm=rain_mm,
         temp_c=temp_c,
-        quali_used=quali_used  # lets the template show a badge
+        quali_used=quali_used
     )
 
 @app.route("/save-simulation", methods=["POST"])

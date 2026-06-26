@@ -11,7 +11,6 @@
 <body>
 {% include 'navbar.html' %}
     <div class="f1-container">
-        <!-- Weather badge — add near your race title -->
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
         <h2 class="section-heading">{{ race }}</h2>
         <span class="race-badge" style="background: {{ 'var(--f1-red)' if rain_mm > 2 else 'var(--f1-surface)' }};">
@@ -21,7 +20,6 @@
             {{ '📡 Live Quali Grid' if quali_used else '📊 Estimated Grid' }}
         </span>
     </div>
-    
 
     <div class="f1-header">
         <h1>Race Prediction</h1>
@@ -31,47 +29,63 @@
     <div class="f1-card">
         <h2 class="section-heading">Predicted Finishing Order</h2>
         <div class="podium-container">
+
             <!-- P2 -->
             <div class="podium-slot">
                 <div class="podium-name">{{ race_predictions[1][0] }}</div>
+                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                    {{ race_predictions[1][2] }}% podium
+                </div>
                 <div class="podium-block p2">2</div>
             </div>
+
             <!-- P1 -->
             <div class="podium-slot">
                 <div class="podium-name">{{ race_predictions[0][0] }}</div>
+                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                    {{ race_predictions[0][2] }}% podium
+                </div>
                 <div class="podium-block p1">1</div>
             </div>
+
             <!-- P3 -->
             <div class="podium-slot">
                 <div class="podium-name">{{ race_predictions[2][0] }}</div>
+                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                    {{ race_predictions[2][2] }}% podium
+                </div>
                 <div class="podium-block p3">3</div>
             </div>
 
         </div>
+
         <h2 class="section-heading">Rest of the Field</h2>
         <table class="standings-table">
             <thead>
                 <tr>
                     <th></th>
                     <th>Driver</th>
+                    <th>Podium %</th>
                 </tr>
             </thead>
             <tbody>
-                {% for driver_name, predicted_pos in race_predictions %}
+                {% for driver_name, predicted_pos, podium_pct in race_predictions %}
                     {% if loop.index > 3 %}
                     <tr>
                         <td class="pos-cell">{{ loop.index }}</td>
                         <td class="driver-cell">{{ driver_name }}</td>
+                        <td class="pts-cell">{{ podium_pct }}%</td>
                     </tr>
                     {% endif %}
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
     <div style="display: flex; gap: 8px; margin-top: 16px; align-items: center;">
         <form action="/save-simulation" method="POST">
             <input type="hidden" name="num_drivers" value="{{ race_predictions|length }}">
-            {% for driver_name, predicted_pos in race_predictions %}
+            {% for driver_name, predicted_pos, podium_pct in race_predictions %}
             <input type="hidden" name="driver_{{ loop.index0 }}" value="{{ driver_name }}">
             {% endfor %}
             <button type="submit" class="btn-papaya-f1"

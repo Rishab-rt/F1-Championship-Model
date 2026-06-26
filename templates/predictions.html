@@ -27,23 +27,35 @@
         <h2 class="section-heading">Projected Final Championship</h2>
         <div class="podium-container">
 
+            <!-- P3 -->
             <div class="podium-slot">
                 <div class="podium-name">{{ projected_standings[2][0] }}</div>
                 <div class="podium-pts">{{ projected_standings[2][1] | int }} pts</div>
+                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                    {{ championship_pct[projected_standings[2][0]] }}% to win title
+                </div>
                 <div class="podium-block p3">3</div>
             </div>
 
+            <!-- P1 -->
             <div class="podium-slot">
                 <div class="podium-name">{{ projected_standings[0][0] }}</div>
                 <div class="podium-pts">{{ projected_standings[0][1] | int }} pts</div>
+                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                    {{ championship_pct[projected_standings[0][0]] }}% to win title
+                </div>
                 <div class="podium-block p1">1</div>
             </div>
 
+            <!-- P2 -->
             <div class="podium-slot">
                 <div class="podium-name">{{ projected_standings[1][0] }}</div>
                 <div class="podium-pts">{{ projected_standings[1][1] | int }} pts</div>
-                <div class="podium-block p2">2</div>
-            </div>
+                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                    {{ championship_pct[projected_standings[1][0]] }}% to win title
+                </div>
+            <div class="podium-block p2">2</div>
+        </div>
 
        
         </div>
