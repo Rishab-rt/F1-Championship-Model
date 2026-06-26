@@ -11,6 +11,13 @@
 <body>
 {% include 'navbar.html' %}
     <div class="f1-container">
+        <!-- Weather badge — add near your race title -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+        <h2 class="section-heading">{{ race }}</h2>
+        <span class="race-badge" style="background: {{ 'var(--f1-red)' if rain_mm > 2 else 'var(--f1-surface)' }};">
+            {{ '🌧' if rain_mm > 2 else '☀️' }} {{ rain_mm }}mm · {{ temp_c }}°C
+        </span>
+    </div>
 
     <div class="f1-header">
         <h1>Race Prediction</h1>

@@ -7,6 +7,7 @@ import requests
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+from datetime import date as date_type
 
 model = joblib.load("f1_model.pkl")
 load_dotenv()
@@ -118,28 +119,92 @@ circuit_info = {
     "albert_park":  {"length": "5.278 km", "laps": 58,  "lap_record": "1:20.235", "lap_record_holder": "Leclerc (2022)",      "type": "Street"},
     "americas":     {"length": "5.513 km", "laps": 56,  "lap_record": "1:36.169", "lap_record_holder": "Leclerc (2019)",      "type": "Permanent"},
     "baku":         {"length": "6.003 km", "laps": 51,  "lap_record": "1:43.009", "lap_record_holder": "Leclerc (2019)",      "type": "Street"},
+    "bahrain":      {"length": "5.412 km", "laps": 57,  "lap_record": "1:31.447", "lap_record_holder": "De la Rosa (2005)",   "type": "Permanent"},
     "catalunya":    {"length": "4.675 km", "laps": 66,  "lap_record": "1:16.330", "lap_record_holder": "Verstappen (2021)",   "type": "Permanent"},
     "hungaroring":  {"length": "4.381 km", "laps": 70,  "lap_record": "1:16.627", "lap_record_holder": "Hamilton (2020)",     "type": "Permanent"},
     "interlagos":   {"length": "4.309 km", "laps": 71,  "lap_record": "1:10.540", "lap_record_holder": "Verstappen (2023)",   "type": "Permanent"},
     "jeddah":       {"length": "6.174 km", "laps": 50,  "lap_record": "1:30.734", "lap_record_holder": "Leclerc (2022)",      "type": "Street"},
-    "las_vegas":    {"length": "6.201 km", "laps": 50,  "lap_record": "1:35.490", "lap_record_holder": "Leclerc (2023)",      "type": "Street"},
-    "lusail":       {"length": "5.380 km", "laps": 57,  "lap_record": "1:24.319", "lap_record_holder": "Russell (2023)",      "type": "Permanent"},
+    "vegas":        {"length": "6.201 km", "laps": 50,  "lap_record": "1:35.490", "lap_record_holder": "Leclerc (2023)",      "type": "Street"},
+    "losail":       {"length": "5.380 km", "laps": 57,  "lap_record": "1:24.319", "lap_record_holder": "Russell (2023)",      "type": "Permanent"},
     "miami":        {"length": "5.412 km", "laps": 57,  "lap_record": "1:29.708", "lap_record_holder": "Verstappen (2023)",   "type": "Street"},
     "monaco":       {"length": "3.337 km", "laps": 78,  "lap_record": "1:12.909", "lap_record_holder": "Leclerc (2024)",      "type": "Street"},
     "monza":        {"length": "5.793 km", "laps": 53,  "lap_record": "1:21.046", "lap_record_holder": "Barrichello (2004)",  "type": "Permanent"},
-    "montreal":     {"length": "4.361 km", "laps": 70,  "lap_record": "1:13.078", "lap_record_holder": "Bottas (2019)",       "type": "Street"},
+    "villeneuve":   {"length": "4.361 km", "laps": 70,  "lap_record": "1:13.078", "lap_record_holder": "Bottas (2019)",       "type": "Street"},
     "red_bull_ring":{"length": "4.318 km", "laps": 71,  "lap_record": "1:05.619", "lap_record_holder": "Leclerc (2020)",      "type": "Permanent"},
+    "rodriguez":    {"length": "4.304 km", "laps": 71,  "lap_record": "1:17.774", "lap_record_holder": "Bottas (2021)",       "type": "Permanent"},
     "shanghai":     {"length": "5.451 km", "laps": 56,  "lap_record": "1:32.238", "lap_record_holder": "Verstappen (2024)",   "type": "Permanent"},
     "silverstone":  {"length": "5.891 km", "laps": 52,  "lap_record": "1:27.097", "lap_record_holder": "Hamilton (2020)",     "type": "Permanent"},
-    "singapore":    {"length": "4.940 km", "laps": 62,  "lap_record": "1:35.867", "lap_record_holder": "Leclerc (2023)",      "type": "Street"},
+    "marina_bay":   {"length": "4.940 km", "laps": 62,  "lap_record": "1:35.867", "lap_record_holder": "Leclerc (2023)",      "type": "Street"},
     "spa":          {"length": "7.004 km", "laps": 44,  "lap_record": "1:46.286", "lap_record_holder": "Bottas (2018)",       "type": "Permanent"},
     "suzuka":       {"length": "5.807 km", "laps": 53,  "lap_record": "1:30.983", "lap_record_holder": "Verstappen (2023)",   "type": "Permanent"},
     "yas_marina":   {"length": "5.281 km", "laps": 58,  "lap_record": "1:26.103", "lap_record_holder": "Leclerc (2021)",      "type": "Permanent"},
     "zandvoort":    {"length": "4.259 km", "laps": 72,  "lap_record": "1:11.097", "lap_record_holder": "Verstappen (2021)",   "type": "Permanent"},
     "madring":      {"length": "5.059 km", "laps": 59,  "lap_record": "N/A",      "lap_record_holder": "New circuit",         "type": "Street"},
-    "villeneuve":   {"length": "4.361 km", "laps": 70,  "lap_record": "1:13.078", "lap_record_holder": "Bottas (2019)",       "type": "Street"},
     "monte_carlo":  {"length": "3.337 km", "laps": 78,  "lap_record": "1:12.909", "lap_record_holder": "Leclerc (2024)",      "type": "Street"},
 }
+
+race_coords = {
+    "Australian Grand Prix":            ("-37.8497", "144.968"),
+    "China Sprint":                     ("31.3389", "121.220"),
+    "Chinese Grand Prix":               ("31.3389", "121.220"),
+    "Japanese Grand Prix":              ("34.8431", "136.541"),
+    "Miami Sprint":                     ("25.9581", "-80.2389"),
+    "Miami Grand Prix":                 ("25.9581", "-80.2389"),
+    "Canada Sprint":                    ("45.5000", "-73.5228"),
+    "Canadian Grand Prix":              ("45.5000", "-73.5228"),
+    "Monaco Grand Prix":                ("43.7347", "7.42056"),
+    "Spanish Grand Prix":               ("41.5700", "2.26111"),
+    "Austrian Grand Prix":              ("47.2197", "14.7647"),
+    "Silverstone Sprint":               ("52.0786", "-1.01694"),
+    "British Grand Prix":               ("52.0786", "-1.01694"),
+    "Belgian Grand Prix - SPA":         ("50.4372", "5.97139"),
+    "Hungarian Grand Prix":             ("47.5789", "19.2486"),
+    "Dutch Sprint":                     ("52.3888", "4.54092"),
+    "Dutch Grand Prix":                 ("52.3888", "4.54092"),
+    "Italian Grand Prix":               ("45.6156", "9.28111"),
+    "Madrid Grand Prix":                ("40.3831", "-3.71444"),
+    "Azerbaijan Grand Prix":            ("40.3725", "49.8533"),
+    "Singapore Sprint":                 ("1.2914", "103.864"),
+    "Singapore Grand Prix":             ("1.2914", "103.864"),
+    "Circuit of Americas Grand Prix":   ("30.1328", "-97.6411"),
+    "Mexican Grand Prix":               ("19.4042", "-99.0907"),
+    "São Paulo Grand Prix":             ("-23.7036", "-46.6997"),
+    "Las Vegas Grand Prix":             ("36.1147", "-115.173"),
+    "Qatar Grand Prix":                 ("25.4900", "51.4542"),
+    "Abu Dhabi Grand Prix":             ("24.4672", "54.6031"),
+}
+
+race_dates = {
+    "Australian Grand Prix":            "2026-03-15",
+    "China Sprint":                     "2026-03-21",
+    "Chinese Grand Prix":               "2026-03-22",
+    "Japanese Grand Prix":              "2026-04-05",
+    "Miami Sprint":                     "2026-05-02",
+    "Miami Grand Prix":                 "2026-05-03",
+    "Canada Sprint":                    "2026-06-13",
+    "Canadian Grand Prix":              "2026-06-14",
+    "Monaco Grand Prix":                "2026-05-24",
+    "Spanish Grand Prix":               "2026-06-28",
+    "Austrian Grand Prix":              "2026-07-05",
+    "Silverstone Sprint":               "2026-07-18",
+    "British Grand Prix":               "2026-07-19",
+    "Belgian Grand Prix - SPA":         "2026-08-02",
+    "Hungarian Grand Prix":             "2026-08-02",
+    "Dutch Sprint":                     "2026-08-29",
+    "Dutch Grand Prix":                 "2026-08-30",
+    "Italian Grand Prix":               "2026-09-06",
+    "Madrid Grand Prix":                "2026-09-13",
+    "Azerbaijan Grand Prix":            "2026-09-20",
+    "Singapore Sprint":                 "2026-10-03",
+    "Singapore Grand Prix":             "2026-10-04",
+    "Circuit of Americas Grand Prix":   "2026-10-18",
+    "Mexican Grand Prix":               "2026-10-25",
+    "São Paulo Grand Prix":             "2026-11-08",
+    "Las Vegas Grand Prix":             "2026-11-21",
+    "Qatar Grand Prix":                 "2026-11-28",
+    "Abu Dhabi Grand Prix":             "2026-12-06",
+}
+
 
 
 def recalculate_all_points():
@@ -170,6 +235,30 @@ def get_medal_index(index):
     elif index == 3:
         return "3 🥉"
     return str(index)
+
+def get_race_weather(lat, lon, race_date_str):
+    """Fetch weather for a race — historical if past, forecast if upcoming."""
+    try:
+        race_date = datetime.strptime(race_date_str, "%Y-%m-%d").date()
+        if race_date < date_type.today():
+            url = "https://archive-api.open-meteo.com/v1/archive"
+        else:
+            url = "https://api.open-meteo.com/v1/forecast"
+
+        params = {
+            "latitude": lat,
+            "longitude": lon,
+            "start_date": race_date_str,
+            "end_date": race_date_str,
+            "daily": ["precipitation_sum", "temperature_2m_max"],
+            "timezone": "auto"
+        }
+        r = requests.get(url, params=params, timeout=10).json()
+        rain = r["daily"]["precipitation_sum"][0] or 0.0
+        temp = r["daily"]["temperature_2m_max"][0] or 20.0
+        return rain, temp
+    except Exception:
+        return 0.0, 20.0
 
 def sync_results():
     for race_name, session_key in race_session_keys.items():
@@ -497,7 +586,7 @@ def predictions():
             "driver_form": avg_position,
             "constructor_form": avg_position,
             "cumulative_points": driver.points,
-            "circuit_avg": avg_position  # default, gets overwritten per race
+            "circuit_avg": avg_position
         }
 
     projected_points = {driver.name: driver.points for driver in sorted_drivers}
@@ -506,25 +595,26 @@ def predictions():
         is_sprint = "Sprint" in race_name
         points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
 
-        # Update circuit_avg for this specific race
+        # Fetch weather per race
+        lat, lon = race_coords.get(race_name, ("0", "0"))
+        race_date = race_dates.get(race_name, str(date_type.today()))
+        rain_mm, temp_c = get_race_weather(lat, lon, race_date)
+
         for driver in sorted_drivers:
             circuit_results = Result.query.filter_by(
                 driver_id=driver.id,
                 race_name=race_name
             ).order_by(Result.id.desc()).limit(3).all()
-
             if circuit_results:
                 driver_features[driver.name]["circuit_avg"] = np.mean([r.position for r in circuit_results])
             else:
                 driver_features[driver.name]["circuit_avg"] = driver_features[driver.name]["driver_form"]
 
-        # Estimate grid with noise
         grid_order = sorted(
             driver_features.keys(),
             key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 3)
         )
 
-        # Build features and predict for each driver
         race_predictions = []
         for i, driver_name in enumerate(grid_order):
             features = driver_features[driver_name]
@@ -533,18 +623,18 @@ def predictions():
                 features["driver_form"],
                 features["constructor_form"],
                 features["cumulative_points"],
-                features["circuit_avg"]
+                features["circuit_avg"],
+                rain_mm,
+                temp_c
             ]])
             predicted_position = model.predict(X_pred)[0]
             race_predictions.append((driver_name, predicted_position))
 
-        # Sort by predicted position and award points
         race_predictions.sort(key=lambda x: x[1])
         for pos, (driver_name, _) in enumerate(race_predictions):
             if pos < len(points_scale):
                 projected_points[driver_name] += points_scale[pos]
 
-    # Sort final projected standings
     projected_standings = sorted(
         projected_points.items(),
         key=lambda x: x[1],
@@ -563,12 +653,17 @@ def predictions():
 @app.route("/raceprediction")
 def raceprediction():
     drivers = Driver.query.all()
-    sorted_drivers = sorted(drivers, key = lambda d: d.points, reverse=True)
+    sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
 
     race = races[current_race_index]
     is_sprint = "Sprint" in race
-    driver_features = {}
 
+    # Fetch weather for this race
+    lat, lon = race_coords.get(race, ("0", "0"))
+    race_date = race_dates.get(race, str(date_type.today()))
+    rain_mm, temp_c = get_race_weather(lat, lon, race_date)
+
+    driver_features = {}
     for driver in sorted_drivers:
         recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
         avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
@@ -577,36 +672,32 @@ def raceprediction():
             "constructor_form": avg_position,
             "cumulative_points": driver.points
         }
-    
-    # Add circuit-specific bias
+
     next_race_name = races[current_race_index]
     for driver in sorted_drivers:
-    # Find historical results at this specific circuit
-        circuit_results = Result.query.filter_by(driver_id=driver.id,race_name=next_race_name).order_by(Result.id.desc()).limit(3).all()
+        circuit_results = Result.query.filter_by(driver_id=driver.id, race_name=next_race_name).order_by(Result.id.desc()).limit(3).all()
         if circuit_results:
             circuit_avg = np.mean([r.position for r in circuit_results])
         else:
-        # Fall back to overall driver form if no history at this circuit
             circuit_avg = driver_features[driver.name]["driver_form"]
-    
         driver_features[driver.name]["circuit_avg"] = circuit_avg
-    
-    # Estimate grid with noise
+
     grid_order = sorted(
         driver_features.keys(),
         key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2)
     )
 
-    # Predict finishing order
     race_predictions = []
     for i, driver_name in enumerate(grid_order):
         features = driver_features[driver_name]
         X_pred = np.array([[
-            i+1,
+            i + 1,
             features["driver_form"],
             features["constructor_form"],
             features["cumulative_points"],
-            features["circuit_avg"]
+            features["circuit_avg"],
+            rain_mm,
+            temp_c
         ]])
         predicted_position = model.predict(X_pred)[0]
         race_predictions.append((driver_name, predicted_position))
@@ -617,7 +708,9 @@ def raceprediction():
         "raceprediction.html",
         race_predictions=race_predictions,
         race=race,
-        current_race_index=current_race_index
+        current_race_index=current_race_index,
+        rain_mm=rain_mm,
+        temp_c=temp_c
     )
 
 @app.route("/save-simulation", methods=["POST"])
