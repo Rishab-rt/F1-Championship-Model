@@ -205,6 +205,37 @@ race_dates = {
     "Abu Dhabi Grand Prix":             "2026-12-06",
 }
 
+race_to_circuit_id = {
+    "Australian Grand Prix":          "albert_park",
+    "Chinese Grand Prix":             "shanghai",
+    "China Sprint":                   "shanghai",
+    "Japanese Grand Prix":            "suzuka",
+    "Miami Grand Prix":               "miami",
+    "Miami Sprint":                   "miami",
+    "Canadian Grand Prix":            "villeneuve",
+    "Canada Sprint":                  "villeneuve",
+    "Monaco Grand Prix":              "monaco",
+    "Spanish Grand Prix":             "catalunya",
+    "Austrian Grand Prix":            "red_bull_ring",
+    "Silverstone Sprint":             "silverstone",
+    "British Grand Prix":             "silverstone",
+    "Belgian Grand Prix - SPA":       "spa",
+    "Hungarian Grand Prix":           "hungaroring",
+    "Dutch Sprint":                   "zandvoort",
+    "Dutch Grand Prix":               "zandvoort",
+    "Italian Grand Prix":             "monza",
+    "Madrid Grand Prix":              "madring",
+    "Azerbaijan Grand Prix":          "baku",
+    "Singapore Sprint":               "marina_bay",
+    "Singapore Grand Prix":           "marina_bay",
+    "Circuit of Americas Grand Prix": "americas",
+    "Mexican Grand Prix":             "rodriguez",
+    "São Paulo Grand Prix":           "interlagos",
+    "Las Vegas Grand Prix":           "vegas",
+    "Qatar Grand Prix":               "losail",
+    "Abu Dhabi Grand Prix":           "yas_marina",
+}
+
 
 
 def recalculate_all_points():
@@ -235,6 +266,29 @@ def get_medal_index(index):
     elif index == 3:
         return "3 🥉"
     return str(index)
+
+def get_circuit_chaos(circuit_id):
+    """Fetch last 3 seasons of results for a circuit and compute mean absolute grid-to-finish delta."""
+    deltas = []
+    for year in [2023, 2024, 2025]:
+        try:
+            r = requests.get(
+                f"https://api.jolpi.ca/ergast/f1/{year}/circuits/{circuit_id}/results.json",
+                timeout=5
+            ).json()
+            races = r["MRData"]["RaceTable"]["Races"]
+            for race in races:
+                for result in race["Results"]:
+                    try:
+                        grid = int(result["grid"])
+                        pos = int(result["position"])
+                        if grid > 0:  # ignore pit lane starts (grid=0)
+                            deltas.append(abs(grid - pos))
+                    except (ValueError, KeyError):
+                        continue
+        except Exception:
+            continue
+    return round(np.mean(deltas), 2) if deltas else 2.0  # fallback to 2.0
 
 def get_race_weather(lat, lon, race_date_str):
     """Fetch weather for a race — historical if past, forecast if upcoming."""
@@ -770,7 +824,6 @@ def raceprediction():
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
 
     race = races[current_race_index]
-    is_sprint = "Sprint" in race
 
     lat, lon = race_coords.get(race, ("0", "0"))
     race_date = race_dates.get(race, str(date_type.today()))
@@ -810,7 +863,10 @@ def raceprediction():
         else:
             circuit_avg = driver_features[driver.name]["driver_form"]
         driver_features[driver.name]["circuit_avg"] = circuit_avg
-
+    
+    circuit_id = race_to_circuit_id.get(race, "albert_park")
+    chaos_factor = get_circuit_chaos(circuit_id)
+    print(f"Chaos factor for {race} ({circuit_id}): {chaos_factor}")
     quali_grid = get_quali_grid(race)
     quali_used = quali_grid is not None
 
