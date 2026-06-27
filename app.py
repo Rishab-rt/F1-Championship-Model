@@ -880,9 +880,9 @@ def raceprediction():
 
     for _ in range(N_SIMS):
         if quali_used:
-            grid_order = sorted(all_driver_names, key=lambda name: quali_grid.get(name, 20) + random.gauss(0, 2))
+            grid_order = sorted(all_driver_names, key=lambda name: quali_grid.get(name, 20) + random.gauss(0, chaos_factor * 0.5))
         else:
-            grid_order = sorted(all_driver_names, key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2))
+            grid_order = sorted(all_driver_names, key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, chaos_factor))
 
         sim_predictions = []
         for i, driver_name in enumerate(grid_order):
