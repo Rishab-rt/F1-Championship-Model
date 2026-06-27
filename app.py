@@ -824,7 +824,7 @@ def raceprediction():
 
     for _ in range(N_SIMS):
         if quali_used:
-            grid_order = sorted(all_driver_names, key=lambda name: quali_grid.get(name, 20))
+            grid_order = sorted(all_driver_names, key=lambda name: quali_grid.get(name, 20) + random.gauss(0, 2))
         else:
             grid_order = sorted(all_driver_names, key=lambda name: driver_features[name]["driver_form"] + random.gauss(0, 2))
 
@@ -860,7 +860,7 @@ def raceprediction():
             most_common_pos = max(counts, key=counts.get)
         else:
             most_common_pos = 20
-        podium_pct = round((podium_counts[driver_name] / N_SIMS) * 100)
+        podium_pct = ((podium_counts[driver_name] / N_SIMS) * 100)
         race_predictions.append((driver_name, most_common_pos, podium_pct))
 
     race_predictions.sort(key=lambda x: x[1])

@@ -72,7 +72,7 @@ def add_features(df):
     df = df.sort_values(["driver_code", "season"])
     df["driver_form"] = (
         df.groupby("driver_code")["position"]
-        .transform(lambda x: x.shift(1).rolling(10, min_periods=1).mean())
+        .transform(lambda x: x.shift(1).rolling(3, min_periods=1).mean())
     )
     df["constructor_form"] = df.apply(lambda row: df[(df["constructor"] == row["constructor"]) & (df["driver_code"] != row["driver_code"]) & (df["season"] == row["season"]) &(df["race_name"] == row["race_name"])]["position"].mean(),axis=1).fillna(df["driver_form"])
 
@@ -85,7 +85,7 @@ def add_features(df):
 
     df["circuit_avg"] = (
         df.groupby(["driver_code", "race_name"])["position"]
-        .transform(lambda x: x.shift(1).rolling(4, min_periods=1).mean())
+        .transform(lambda x: x.shift(1).rolling(3, min_periods=1).mean())
     )
     df["circuit_avg"] = df["circuit_avg"].fillna(df["driver_form"])
 
@@ -113,12 +113,12 @@ X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
     X, y, weights, test_size=0.2, random_state=42
 )
 
-model = XGBRegressor(n_estimators=500, learning_rate=0.1, max_depth=4)
+model = XGBRegressor(n_estimators=400, learning_rate=0.1, max_depth=4)
 model.fit(X_train, y_train, sample_weight=w_train)
 
 y_pred = model.predict(X_test)
 mae = mean_absolute_error(y_test, y_pred)
-print(f"MAE: {mae:.2f} positions")
+print(f"MAE: {mae:.3f} positions")
 
 joblib.dump(model, "f1_model.pkl")
 print("Model saved to f1_model.pkl")
