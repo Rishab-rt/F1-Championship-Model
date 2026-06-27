@@ -7,7 +7,7 @@ import requests
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from datetime import date as date_type
+from datetime import date as date_type, datetime
 
 model = joblib.load("f1_model.pkl")
 load_dotenv()
