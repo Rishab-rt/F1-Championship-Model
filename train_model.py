@@ -74,10 +74,7 @@ def add_features(df):
         df.groupby("driver_code")["position"]
         .transform(lambda x: x.shift(1).rolling(10, min_periods=1).mean())
     )
-    df["constructor_form"] = (
-        df.groupby("constructor")["position"]
-        .transform(lambda x: x.shift(1).rolling(10, min_periods=1).mean())
-    )
+    df["constructor_form"] = df.apply(lambda row: df[(df["constructor"] == row["constructor"]) & (df["driver_code"] != row["driver_code"]) & (df["season"] == row["season"]) &(df["race_name"] == row["race_name"])]["position"].mean(),axis=1).fillna(df["driver_form"])
 
     points_map = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
     df["points_scored"] = df["position"].map(points_map).fillna(0)

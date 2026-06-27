@@ -634,83 +634,121 @@ def predictions():
     drivers = Driver.query.all()
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
     remaining_races = races[current_race_index:]
+    drivers_dict = {driver.name: driver for driver in sorted_drivers}
+    all_driver_names = [d.name for d in sorted_drivers]
+    N_SIMS = 500
+
+    # Build teammate lookup
+    team_avgs = {}
+    for driver in sorted_drivers:
+        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(5).all()
+        team_avgs[driver.name] = {
+            "team": driver.team,
+            "avg": np.mean([r.position for r in recent_results]) if recent_results else 10.0
+        }
 
     driver_features = {}
     for driver in sorted_drivers:
         recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
         avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
+        teammate_avgs = [
+            v["avg"] for k, v in team_avgs.items()
+            if v["team"] == driver.team and k != driver.name
+        ]
+        constructor_form = np.mean(teammate_avgs) if teammate_avgs else avg_position
         driver_features[driver.name] = {
             "driver_form": avg_position,
-            "constructor_form": avg_position,
+            "constructor_form": constructor_form,
             "cumulative_points": driver.points,
             "circuit_avg": avg_position
         }
 
-    all_driver_names = [d.name for d in sorted_drivers]
-    N_SIMS = 10
+    # --- Cache all DB queries before sim loop ---
+    circuit_avg_cache = {}
+    for driver in sorted_drivers:
+        for race_name in remaining_races:
+            circuit_results = Result.query.filter_by(
+                driver_id=driver.id, race_name=race_name
+            ).order_by(Result.id.desc()).limit(current_race_index).all()
+            circuit_avg_cache[(driver.name, race_name)] = (
+                np.mean([r.position for r in circuit_results])
+                if circuit_results else driver_features[driver.name]["driver_form"]
+            )
 
-    # Track total projected points and championship position counts across sims
-    total_points = {name: 0 for name in all_driver_names}
-    championship_counts = {name: 0 for name in all_driver_names}  # times finishing P1 in championship
-
-    # Fetch weather for all remaining races ONCE before the sim loop
+    # --- Cache weather before sim loop ---
     race_weather_cache = {}
     for race_name in remaining_races:
         lat, lon = race_coords.get(race_name, ("0", "0"))
         race_date = race_dates.get(race_name, str(date_type.today()))
         race_weather_cache[race_name] = get_race_weather(lat, lon, race_date)
 
+    # --- Pre-build static feature arrays per driver (things that don't change per race) ---
+    driver_form_arr = np.array([driver_features[n]["driver_form"] for n in all_driver_names])
+    constructor_form_arr = np.array([driver_features[n]["constructor_form"] for n in all_driver_names])
+    cumulative_pts_arr = np.array([driver_features[n]["cumulative_points"] for n in all_driver_names])
+    name_to_idx = {name: i for i, name in enumerate(all_driver_names)}
+
+    # --- Sim loop ---
+    total_points = np.array([driver_features[n]["cumulative_points"] for n in all_driver_names], dtype=float)
+    total_points_accum = np.zeros(len(all_driver_names))
+    championship_counts = np.zeros(len(all_driver_names))
+
     for _ in range(N_SIMS):
-        sim_features = {name: dict(feats) for name, feats in driver_features.items()}
-        projected_points = {name: drivers[i].points for i, name in enumerate(all_driver_names)}
+        projected_points = np.array([driver_features[n]["cumulative_points"] for n in all_driver_names], dtype=float)
 
         for race_name in remaining_races:
             is_sprint = "Sprint" in race_name
             points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
-
             rain_mm, temp_c = race_weather_cache[race_name]
 
-            for driver in sorted_drivers:
-                circuit_results = Result.query.filter_by(driver_id=driver.id, race_name=race_name).order_by(Result.id.desc()).limit(current_race_index).all()
-                sim_features[driver.name]["circuit_avg"] = (
-                    np.mean([r.position for r in circuit_results])
-                    if circuit_results else sim_features[driver.name]["driver_form"]
-                )
+            # Circuit avg per driver for this race from cache
+            circuit_avg_arr = np.array([
+                circuit_avg_cache[(name, race_name)] for name in all_driver_names
+            ])
 
-            grid_order = sorted(all_driver_names, key=lambda name: sim_features[name]["driver_form"] + random.gauss(0, 3))
+            # Noisy grid order
+            noise = np.random.normal(0, 3, len(all_driver_names))
+            grid_order_idx = np.argsort(driver_form_arr + noise)
+            grid_positions = np.empty(len(all_driver_names), dtype=int)
+            grid_positions[grid_order_idx] = np.arange(1, len(all_driver_names) + 1)
 
-            race_preds = []
-            for i, driver_name in enumerate(grid_order):
-                features = sim_features[driver_name]
-                X_pred = np.array([[
-                    i + 1,
-                    features["driver_form"],
-                    features["constructor_form"],
-                    features["cumulative_points"],
-                    features["circuit_avg"],
-                    rain_mm,
-                    temp_c
-                ]])
-                predicted_position = model.predict(X_pred)[0]
-                race_preds.append((driver_name, predicted_position))
+            # Batch predict all drivers at once
+            X_batch = np.column_stack([
+                grid_positions,
+                driver_form_arr,
+                constructor_form_arr,
+                projected_points,
+                circuit_avg_arr,
+                np.full(len(all_driver_names), rain_mm),
+                np.full(len(all_driver_names), temp_c)
+            ])
+            predicted_positions = model.predict(X_batch)
 
-            race_preds.sort(key=lambda x: x[1])
-            for pos, (driver_name, _) in enumerate(race_preds):
+            # Sort by predicted position and award points
+            sorted_idx = np.argsort(predicted_positions)
+            for pos, driver_idx in enumerate(sorted_idx):
                 if pos < len(points_scale):
-                    projected_points[driver_name] += points_scale[pos]
+                    projected_points[driver_idx] += points_scale[pos]
 
-        # Who won the championship in this sim?
-        champion = max(projected_points, key=projected_points.get)
-        championship_counts[champion] += 1
+        champion_idx = np.argmax(projected_points)
+        championship_counts[champion_idx] += 1
+        total_points_accum += projected_points
 
-        for name in all_driver_names:
-            total_points[name] += projected_points[name]
-
-    # Average points across all sims
-    avg_points = {name: round(total_points[name] / N_SIMS) for name in all_driver_names}
-    championship_pct = {name: round((championship_counts[name] / N_SIMS) * 100) for name in all_driver_names}
-
+    # --- Driver standings ---
+    avg_points = {all_driver_names[i]: round(total_points_accum[i] / N_SIMS) for i in range(len(all_driver_names))}
     projected_standings = sorted(avg_points.items(), key=lambda x: x[1], reverse=True)
+
+    championship_pct = {}
+    for i, name in enumerate(all_driver_names):
+        raw = round((championship_counts[i] / N_SIMS) * 100)
+        championship_pct[name] = 0.5 if raw == 0 else min(95, raw)
+
+    # --- Constructor standings: sum driver avg points per team ---
+    constructor_points = {}
+    for name, pts in avg_points.items():
+        team = drivers_dict[name].team
+        constructor_points[team] = constructor_points.get(team, 0) + pts
+    constructor_standings = sorted(constructor_points.items(), key=lambda x: x[1], reverse=True)
 
     return render_template(
         "predictions.html",
@@ -719,7 +757,8 @@ def predictions():
         remaining_races=remaining_races,
         current_race_index=current_race_index,
         driver_teams={d.name: d.team for d in sorted_drivers},
-        championship_pct=championship_pct
+        championship_pct=championship_pct,
+        constructor_standings=constructor_standings,
     )
 
 @app.route("/raceprediction")
@@ -734,13 +773,29 @@ def raceprediction():
     race_date = race_dates.get(race, str(date_type.today()))
     rain_mm, temp_c = get_race_weather(lat, lon, race_date)
 
+    # Build teammate lookup first
+    team_avgs = {}
+    for driver in sorted_drivers:
+        recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(5).all()
+        team_avgs[driver.name] = {
+            "team": driver.team,
+            "avg": np.mean([r.position for r in recent_results]) if recent_results else 10.0
+        }
+
     driver_features = {}
     for driver in sorted_drivers:
         recent_results = Result.query.filter_by(driver_id=driver.id).order_by(Result.id.desc()).limit(current_race_index).all()
         avg_position = np.mean([r.position for r in recent_results]) if recent_results else 10.0
+
+        teammate_avgs = [
+            v["avg"] for k, v in team_avgs.items()
+            if v["team"] == driver.team and k != driver.name
+        ]
+        constructor_form = np.mean(teammate_avgs) if teammate_avgs else avg_position
+
         driver_features[driver.name] = {
             "driver_form": avg_position,
-            "constructor_form": avg_position,
+            "constructor_form": constructor_form,
             "cumulative_points": driver.points
         }
 

@@ -23,73 +23,152 @@
         </div>
     </div>
 
-    <div class="f1-card">
-        <h2 class="section-heading">Projected Final Championship</h2>
-        <div class="podium-container">
-
-            <!-- P3 -->
-            <div class="podium-slot">
-                <div class="podium-name">{{ projected_standings[2][0] }}</div>
-                <div class="podium-pts">{{ projected_standings[2][1] | int }} pts</div>
-                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
-                    {{ championship_pct[projected_standings[2][0]] }}% to win title
-                </div>
-                <div class="podium-block p3">3</div>
-            </div>
-
-            <!-- P1 -->
-            <div class="podium-slot">
-                <div class="podium-name">{{ projected_standings[0][0] }}</div>
-                <div class="podium-pts">{{ projected_standings[0][1] | int }} pts</div>
-                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
-                    {{ championship_pct[projected_standings[0][0]] }}% to win title
-                </div>
-                <div class="podium-block p1">1</div>
-            </div>
-
-            <!-- P2 -->
-            <div class="podium-slot">
-                <div class="podium-name">{{ projected_standings[1][0] }}</div>
-                <div class="podium-pts">{{ projected_standings[1][1] | int }} pts</div>
-                <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
-                    {{ championship_pct[projected_standings[1][0]] }}% to win title
-                </div>
-            <div class="podium-block p2">2</div>
-        </div>
-
-       
-        </div>
-        <h2 class="section-heading">Rest of the Field</h2>
-        <table class="standings-table">
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Driver</th>
-                    <th>Team</th>
-                    <th>Projected Pts</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for driver_name, projected_pts in projected_standings %}
-                    {% if loop.index > 3 %}
-                    <tr>
-                        <td class="pos-cell">{{ loop.index }}</td>
-                        <td class="driver-cell">{{ driver_name }}</td>
-                        <td><span class="team-pill team-{{ driver_teams[driver_name] | lower | replace(' ', '') }}">{{ driver_teams[driver_name] }}</span></td>
-                        <td class="pts-cell">{{ projected_pts | int }}</td>
-                    </tr>
-                    {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+    <!-- Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="circuit-btn race-edit-pill" id="tab-drivers"
+                onclick="showTab('drivers', this)"
+                style="border-color: var(--f1-papaya); color: var(--f1-papaya);">
+            🏁 Drivers
+        </button>
+        <button class="circuit-btn race-edit-pill" id="tab-constructors"
+                onclick="showTab('constructors', this)">
+            🏗️ Constructors
+        </button>
     </div>
 
-   
+    <!-- DRIVERS TAB -->
+    <div id="panel-drivers">
+        <div class="f1-card">
+            <h2 class="section-heading">Projected Driver Championship</h2>
+            <div class="podium-container">
+
+                <div class="podium-slot">
+                    <div class="podium-name">{{ projected_standings[2][0] }}</div>
+                    <div class="podium-pts">{{ projected_standings[2][1] | int }} pts</div>
+                    <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                        {{ championship_pct[projected_standings[2][0]] }}% to win title
+                    </div>
+                    <div class="podium-block p3">3</div>
+                </div>
+
+                <div class="podium-slot">
+                    <div class="podium-name">{{ projected_standings[0][0] }}</div>
+                    <div class="podium-pts">{{ projected_standings[0][1] | int }} pts</div>
+                    <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                        {{ championship_pct[projected_standings[0][0]] }}% to win title
+                    </div>
+                    <div class="podium-block p1">1</div>
+                </div>
+
+                <div class="podium-slot">
+                    <div class="podium-name">{{ projected_standings[1][0] }}</div>
+                    <div class="podium-pts">{{ projected_standings[1][1] | int }} pts</div>
+                    <div style="font-size: 12px; color: var(--f1-muted); margin-bottom: 4px;">
+                        {{ championship_pct[projected_standings[1][0]] }}% to win title
+                    </div>
+                    <div class="podium-block p2">2</div>
+                </div>
+
+            </div>
+
+            <h2 class="section-heading">Rest of the Field</h2>
+            <table class="standings-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Driver</th>
+                        <th>Team</th>
+                        <th>Projected Pts</th>
+                        <th>Title %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for driver_name, projected_pts in projected_standings %}
+                        {% if loop.index > 3 %}
+                        <tr>
+                            <td class="pos-cell">{{ loop.index }}</td>
+                            <td class="driver-cell">{{ driver_name }}</td>
+                            <td><span class="team-pill team-{{ driver_teams[driver_name] | lower | replace(' ', '') }}">{{ driver_teams[driver_name] }}</span></td>
+                            <td class="pts-cell">{{ projected_pts | int }}</td>
+                            <td class="pts-cell">{{ championship_pct[driver_name] }}%</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CONSTRUCTORS TAB -->
+    <div id="panel-constructors" style="display: none;">
+        <div class="f1-card">
+            <h2 class="section-heading">Projected Constructor Championship</h2>
+            <div class="podium-container">
+
+                <div class="podium-slot">
+                    <div class="podium-name">{{ constructor_standings[2][0] }}</div>
+                    <div class="podium-pts">{{ constructor_standings[2][1] | int }} pts</div>
+                    <div class="podium-block p3">3</div>
+                </div>
+
+                <div class="podium-slot">
+                    <div class="podium-name">{{ constructor_standings[0][0] }}</div>
+                    <div class="podium-pts">{{ constructor_standings[0][1] | int }} pts</div>
+                    <div class="podium-block p1">1</div>
+                </div>
+
+                <div class="podium-slot">
+                    <div class="podium-name">{{ constructor_standings[1][0] }}</div>
+                    <div class="podium-pts">{{ constructor_standings[1][1] | int }} pts</div>
+                    <div class="podium-block p2">2</div>
+                </div>
+
+            </div>
+
+            <h2 class="section-heading">Rest of the Field</h2>
+            <table class="standings-table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Constructor</th>
+                        <th>Projected Pts</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team_name, projected_pts in constructor_standings %}
+                        {% if loop.index > 3 %}
+                        <tr>
+                            <td class="pos-cell">{{ loop.index }}</td>
+                            <td class="driver-cell">
+                                <span class="team-pill team-{{ team_name | lower | replace(' ', '') }}">{{ team_name }}</span>
+                            </td>
+                            <td class="pts-cell">{{ projected_pts | int }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <div style="display: flex; gap: 8px; margin-top: 16px;">
         <a href="/predictions" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px;">Run again</a>
     </div>
 
 </div>
+
+<script>
+function showTab(tab, btn) {
+    document.getElementById('panel-drivers').style.display = tab === 'drivers' ? 'block' : 'none';
+    document.getElementById('panel-constructors').style.display = tab === 'constructors' ? 'block' : 'none';
+    document.querySelectorAll('.circuit-btn').forEach(b => {
+        b.style.borderColor = '';
+        b.style.color = '';
+    });
+    btn.style.borderColor = 'var(--f1-papaya)';
+    btn.style.color = 'var(--f1-papaya)';
+}
+</script>
+
 </body>
 </html>
