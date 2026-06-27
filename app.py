@@ -841,7 +841,8 @@ def raceprediction():
                 rain_mm,
                 temp_c
             ]])
-            predicted_position = model.predict(X_pred)[0]
+            base_prediction = model.predict(X_pred)[0]
+            predicted_position = base_prediction + random.gauss(0, 2.0)
             sim_predictions.append((driver_name, predicted_position))
 
         sim_predictions.sort(key=lambda x: x[1])
@@ -860,7 +861,7 @@ def raceprediction():
             most_common_pos = max(counts, key=counts.get)
         else:
             most_common_pos = 20
-        podium_pct = ((podium_counts[driver_name] / N_SIMS) * 100)
+        podium_pct = round((podium_counts[driver_name] / N_SIMS) * 100,1)
         race_predictions.append((driver_name, most_common_pos, podium_pct))
 
     race_predictions.sort(key=lambda x: x[1])
