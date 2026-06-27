@@ -524,6 +524,7 @@ def edit_race(race_index):
                            race_index=race_index,
                            error=None)
 
+#statistics page
 @app.route("/stats")
 def stats():
     drivers = Driver.query.all()
@@ -626,7 +627,9 @@ def stats():
 def sync():
     global current_race_index
     sync_results()
-    current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
+    count = Result.query.with_entities(Result.race_name).distinct().count()
+    print(f"After sync: {count} distinct races in DB")
+    current_race_index = count
     return redirect(url_for('standings'))
 
 @app.route("/predictions")
@@ -875,14 +878,12 @@ def raceprediction():
 @app.route("/save-simulation", methods=["POST"])
 def save_simulation():
     global current_race_index
-    
-    # Get the predicted order from the form
+
     race_name = races[current_race_index]
     num_drivers = int(request.form.get("num_drivers"))
-    
-    # Delete any existing results for this race
+
     Result.query.filter_by(race_name=race_name).delete()
-    
+
     for i in range(num_drivers):
         driver_name = request.form.get(f"driver_{i}")
         if driver_name:
@@ -895,11 +896,46 @@ def save_simulation():
                     source="simulation"
                 )
                 db.session.add(result)
-    
+
     db.session.commit()
     recalculate_all_points()
     current_race_index += 1
+
+    # Redirect to finale if last race just saved
+    if current_race_index >= len(races):
+        return redirect(url_for('finale'))
+
     return redirect(url_for('index'))
+
+
+@app.route("/finale")
+def finale():
+    drivers = Driver.query.order_by(Driver.points.desc()).all()
+
+    # Driver champion
+    champion = drivers[0]
+
+    # Constructor standings — sum points per team
+    constructor_points = {}
+    for driver in drivers:
+        constructor_points[driver.team] = constructor_points.get(driver.team, 0) + driver.points
+    constructor_standings = sorted(constructor_points.items(), key=lambda x: x[1], reverse=True)
+
+    # Team logo mapping
+    logo_map = {
+        "Ferrari": "ferrari.png",
+        "McLaren": "mclaren.png",
+        "Mercedes": "mercedes.png",
+        "Red Bull": "redbull.png",
+    }
+
+    return render_template(
+        "finale.html",
+        champion=champion,
+        drivers=drivers,
+        constructor_standings=constructor_standings,
+        logo_map=logo_map,
+    )
 
 @app.route("/circuitguide")
 def circuitguide():
