@@ -636,7 +636,7 @@ def predictions():
     remaining_races = races[current_race_index:]
     drivers_dict = {driver.name: driver for driver in sorted_drivers}
     all_driver_names = [d.name for d in sorted_drivers]
-    N_SIMS = 500
+    N_SIMS = 1000
 
     # Build teammate lookup
     team_avgs = {}
@@ -976,6 +976,7 @@ if __name__ == "__main__":
     with app.app_context():
         try:
             current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
+            sync_results()
             print(f"✅ Synced successfully. {current_race_index} races loaded.")
         except Exception as e:
             print(f"⚠️ Sync failed: {e}")
