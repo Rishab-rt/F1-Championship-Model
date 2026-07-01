@@ -14,7 +14,6 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 - **Circuit Guide** — Sky Sports-style stat cards per circuit (length, laps, lap record, recent winner, location map)
 - **Next Race Prediction** — XGBoost ML model predicting the upcoming race with 1000 Monte Carlo simulations, live quali grid integration via OpenF1, podium % per driver, and real-time weather from Open-Meteo
 - **Season Simulation** — Full remaining season simulation with projected driver and constructor championships, title win percentages, and probabilistic noise
-- **Season Finale** — Celebration page with confetti, driver podium, and constructor championship cards triggered after the final race
 - **Weather Integration** — Open-Meteo API for race day forecasts and historical weather, used as ML model features
 - **Saturday Quali Integration** — Fetches live qualifying grid from OpenF1 to replace estimated grid in race predictions
 - **Dynamic Chaos Factor** — Circuit-specific prediction noise calculated from historical grid-to-finish deltas via Jolpica API
@@ -23,7 +22,7 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 
 - XGBoost regressor trained on weighted 2023–2026 data (2026 weighted 5x)
 - Features: grid position, driver form, constructor form (teammate average), cumulative points, circuit average, rain (mm), temperature (°C)
-- MAE: ~2.18 positions
+- MAE: ~1.9 positions
 - Retrain anytime with `python3 train_model.py`
 
 ## Tech Stack
