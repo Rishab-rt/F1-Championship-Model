@@ -30,7 +30,7 @@ def get_historical_weather(lat, lon, date_str, cache={}):
         rain, temp = 0.0, 20.0
     
     cache[key] = (rain, temp)
-    time.sleep(0.1)  # be polite to the API
+    time.sleep(0.1)
     return rain, temp
 
 def fetch_season(year):
