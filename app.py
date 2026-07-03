@@ -315,50 +315,94 @@ def get_race_weather(lat, lon, race_date_str):
         return 0.0, 20.0
 
 def get_quali_grid(race_name):
-    """
-    Fetch qualifying grid positions from OpenF1 for the given race.
-    Returns a dict of {driver_name: grid_position} or None if not available.
-    """
+    print(f"\n--- [DEBUG] Fetching grid for: '{race_name}' ---")
+    
+    circuit_id = race_to_circuit_id.get(race_name)
+    race_date = race_dates.get(race_name)
+    
+    if not circuit_id or not race_date:
+        print(f"❌ [DEBUG] Failed at Step 1: '{race_name}' is missing from your dictionaries! circuit_id={circuit_id}, date={race_date}")
+        return None
+
+    year = race_date[:4]
+    print(f"✅ [DEBUG] Step 1 Passed: Year={year}, Circuit={circuit_id}")
+
     try:
-        # Step 1 — get the session key for qualifying at this race's meeting
-        race_session_key = race_session_keys.get(race_name)
-        if not race_session_key:
-            return None
-
-        # Step 2 — find the qualifying session in the same meeting
-        r = requests.get(
-            f"https://api.openf1.org/v1/sessions?meeting_key="
-            f"{get_meeting_key(race_session_key)}&session_type=Qualifying",
+        # 1. Capitalize for OpenF1 (turns "silverstone" into "Silverstone")
+        search_circuit = circuit_id.capitalize()
+        
+        meetings = requests.get(
+            "https://api.openf1.org/v1/meetings",
+            params={"year": year, "circuit_short_name": search_circuit},
             timeout=10
         ).json()
-        if not r:
+        
+        # 2. PREVENT THE KEYERROR: Check if API returned an error dictionary instead of a list
+        if isinstance(meetings, dict) and 'detail' in meetings:
+            print(f"❌ [DEBUG] Failed at Step 2: OpenF1 rejected '{search_circuit}'.")
             return None
-        quali_session_key = r[0]["session_key"]
+            
+        if not meetings:
+            print("❌ [DEBUG] Failed at Step 2: Meeting list is empty.")
+            return None
+            
+        meeting_key = meetings[0]["meeting_key"]
+        print(f"✅ [DEBUG] Step 2 Passed: Found Meeting Key {meeting_key}")
 
-        # Step 3 — fetch final positions from that quali session
+        is_sprint = "Sprint" in race_name
+        target_session = "Sprint Qualifying" if is_sprint else "Qualifying"
+        print(f"🔍 [DEBUG] Step 3: Searching for '{target_session}'...")
+
+        sessions = requests.get(
+            "https://api.openf1.org/v1/sessions",
+            params={"meeting_key": meeting_key, "session_name": target_session},
+            timeout=10
+        ).json()
+        
+        # Safely handle potential dictionary errors here too!
+        if isinstance(sessions, dict) and 'detail' in sessions:
+            print(f"❌ [DEBUG] Failed at Step 3: OpenF1 rejected '{target_session}'.")
+            return None
+            
+        if not sessions:
+            print(f"❌ [DEBUG] Failed at Step 3: '{target_session}' has not happened yet!")
+            return None
+            
+        quali_session_key = sessions[0]["session_key"]
+        print(f"✅ [DEBUG] Step 3 Passed: Found Session Key {quali_session_key}")
+
         positions_r = requests.get(
-            f"https://api.openf1.org/v1/position?session_key={quali_session_key}",
+            "https://api.openf1.org/v1/position",
+            params={"session_key": quali_session_key},
             timeout=10
         ).json()
-        if not positions_r:
+        
+        if not positions_r or not isinstance(positions_r, list):
+            print("❌ [DEBUG] Failed at Step 4: Session exists, but the API returned no position telemetry.")
             return None
 
-        # Keep only the last position entry per driver (final classified position)
+        print(f"✅ [DEBUG] Step 4 Passed: Downloaded {len(positions_r)} telemetry records.")
+
         latest = {}
         for entry in positions_r:
             num = entry["driver_number"]
             latest[num] = entry["position"]
 
-        # Step 4 — map driver numbers to names using your existing lookup
         grid = {}
         for driver_num, pos in latest.items():
             name = driver_number_to_name.get(driver_num)
             if name:
                 grid[name] = pos
 
-        return grid if grid else None
+        if not grid:
+            print("❌ [DEBUG] Failed at Step 5: Driver numbers didn't match dictionary!")
+            return None
 
-    except Exception:
+        print("🎉 [DEBUG] SUCCESS! Actual Grid Generated!")
+        return grid
+
+    except Exception as e:
+        print(f"❌ [DEBUG] A Python error crashed the function: {e}")
         return None
 
 
@@ -978,20 +1022,11 @@ def finale():
         constructor_points[driver.team] = constructor_points.get(driver.team, 0) + driver.points
     constructor_standings = sorted(constructor_points.items(), key=lambda x: x[1], reverse=True)
 
-    # Team logo mapping
-    logo_map = {
-        "Ferrari": "ferrari.png",
-        "McLaren": "mclaren.png",
-        "Mercedes": "mercedes.png",
-        "Red Bull": "redbull.png",
-    }
-
     return render_template(
         "finale.html",
         champion=champion,
         drivers=drivers,
         constructor_standings=constructor_standings,
-        logo_map=logo_map,
     )
 
 @app.route("/circuitguide")
