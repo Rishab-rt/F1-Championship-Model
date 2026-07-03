@@ -6,31 +6,56 @@ from xgboost import XGBRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 import joblib
+import logging
 import time
 
 def get_historical_weather(lat, lon, date_str, cache={}):
     key = (round(float(lat), 2), round(float(lon), 2), date_str)
     if key in cache:
         return cache[key]
-    
+    if lat == "0" and lon == "0":
+        tz = "UTC"
+    else:
+        tz = "auto"
     url = "https://archive-api.open-meteo.com/v1/archive"
     params = {
         "latitude": lat,
         "longitude": lon,
-        "start_date": date_str,
-        "end_date": date_str,
-        "daily": ["precipitation_sum", "temperature_2m_max"],
-        "timezone": "auto"
-    }
+        "start_date": date_str, 
+        "end_date": date_str,   
+        "daily": "precipitation_sum,temperature_2m_max", 
+        "timezone": tz
+}
+    
     try:
-        r = requests.get(url, params=params, timeout=10).json()
-        rain = r["daily"]["precipitation_sum"][0] or 0.0
-        temp = r["daily"]["temperature_2m_max"][0] or 20.0
-    except Exception:
+        # 1. Make the request
+        r = requests.get(url, params=params, timeout=10)
+        
+        # 2. Raise an error if the status code is bad (e.g., 404 or 500)
+        r.raise_for_status()
+        
+        # 3. Parse the JSON
+        data = r.json()
+        rain = data["daily"]["precipitation_sum"][0] or 0.0
+        temp = data["daily"]["temperature_2m_max"][0] or 20.0
+        
+    except requests.exceptions.RequestException as e:
+        # This catches network drops, timeouts, and bad HTTP status codes
+        logging.error(f"Network/API error fetching weather for {date_str} at {lat}, {lon}: {e}")
+        rain, temp = 0.0, 20.0
+        
+    except (KeyError, IndexError, TypeError) as e:
+        # This catches issues if Open-Meteo changes their JSON format
+        logging.error(f"Data parsing error for weather on {date_str}. Unexpected JSON structure: {e}")
+        rain, temp = 0.0, 20.0
+        
+    except Exception as e:
+        # The ultimate fallback for anything totally unexpected
+        logging.error(f"An unexpected error occurred while fetching weather: {e}")
         rain, temp = 0.0, 20.0
     
     cache[key] = (rain, temp)
-    time.sleep(0.1)
+    # time.sleep(0.1) # (If using in your training script)
     return rain, temp
 
 def fetch_season(year):
