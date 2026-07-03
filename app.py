@@ -7,6 +7,7 @@ import requests
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+import logging
 from datetime import date as date_type, datetime
 
 model = joblib.load("f1_model.pkl")
@@ -293,40 +294,70 @@ def get_circuit_chaos(circuit_id):
 def get_race_weather(lat, lon, race_date_str):
     """Fetch weather for a race — historical if past, forecast if upcoming."""
     try:
+        # Parse the date
         race_date = datetime.strptime(race_date_str, "%Y-%m-%d").date()
+        
+        # Determine whether to use the archive or forecast API
         if race_date < date_type.today():
             url = "https://archive-api.open-meteo.com/v1/archive"
         else:
             url = "https://api.open-meteo.com/v1/forecast"
 
+        if lat == "0" and lon == "0":
+            tz = "UTC"
+        else:
+            tz = "auto"
         params = {
             "latitude": lat,
             "longitude": lon,
-            "start_date": race_date_str,
-            "end_date": race_date_str,
-            "daily": ["precipitation_sum", "temperature_2m_max"],
-            "timezone": "auto"
+            "start_date": race_date_str, 
+            "end_date": race_date_str,   
+            "daily": "precipitation_sum,temperature_2m_max",  
+            "timezone": tz
         }
-        r = requests.get(url, params=params, timeout=10).json()
-        rain = r["daily"]["precipitation_sum"][0] or 0.0
-        temp = r["daily"]["temperature_2m_max"][0] or 20.0
+        
+        # 1. Make the request (DO NOT chain .json() here yet)
+        r = requests.get(url, params=params, timeout=10)
+        
+        # 2. Raise an error if the API responded with a 404, 500, etc.
+        r.raise_for_status()
+        
+        # 3. Parse the JSON safely
+        data = r.json()
+        rain = data["daily"]["precipitation_sum"][0] or 0.0
+        temp = data["daily"]["temperature_2m_max"][0] or 20.0
+        
         return rain, temp
-    except Exception:
+        
+    except ValueError as e:
+        # Catches bad date formats passed into the function
+        logging.error(f"Date formatting error for '{race_date_str}': {e}")
+        return 0.0, 20.0
+
+    except requests.exceptions.RequestException as e:
+        # Catches network drops, timeouts, and bad HTTP status codes
+        logging.error(f"Network/API error fetching weather for {race_date_str} at {lat}, {lon}: {e}")
+        return 0.0, 20.0
+        
+    except (KeyError, IndexError, TypeError) as e:
+        # Catches issues if Open-Meteo changes their JSON format or returns empty arrays
+        logging.error(f"Data parsing error for weather on {race_date_str}. Unexpected JSON structure: {e}")
+        return 0.0, 20.0
+        
+    except Exception as e:
+        # The ultimate fallback for anything totally unexpected
+        logging.error(f"An unexpected error occurred while fetching weather for {race_date_str}: {e}")
         return 0.0, 20.0
 
 def get_quali_grid(race_name):
-    print(f"\n--- [DEBUG] Fetching grid for: '{race_name}' ---")
-    
+
     circuit_id = race_to_circuit_id.get(race_name)
     race_date = race_dates.get(race_name)
-    
+
     if not circuit_id or not race_date:
-        print(f"❌ [DEBUG] Failed at Step 1: '{race_name}' is missing from your dictionaries! circuit_id={circuit_id}, date={race_date}")
         return None
-
+    
     year = race_date[:4]
-    print(f"✅ [DEBUG] Step 1 Passed: Year={year}, Circuit={circuit_id}")
-
     try:
         # 1. Capitalize for OpenF1 (turns "silverstone" into "Silverstone")
         search_circuit = circuit_id.capitalize()
@@ -339,19 +370,15 @@ def get_quali_grid(race_name):
         
         # 2. PREVENT THE KEYERROR: Check if API returned an error dictionary instead of a list
         if isinstance(meetings, dict) and 'detail' in meetings:
-            print(f"❌ [DEBUG] Failed at Step 2: OpenF1 rejected '{search_circuit}'.")
             return None
             
         if not meetings:
-            print("❌ [DEBUG] Failed at Step 2: Meeting list is empty.")
             return None
             
         meeting_key = meetings[0]["meeting_key"]
-        print(f"✅ [DEBUG] Step 2 Passed: Found Meeting Key {meeting_key}")
 
         is_sprint = "Sprint" in race_name
         target_session = "Sprint Qualifying" if is_sprint else "Qualifying"
-        print(f"🔍 [DEBUG] Step 3: Searching for '{target_session}'...")
 
         sessions = requests.get(
             "https://api.openf1.org/v1/sessions",
@@ -361,15 +388,12 @@ def get_quali_grid(race_name):
         
         # Safely handle potential dictionary errors here too!
         if isinstance(sessions, dict) and 'detail' in sessions:
-            print(f"❌ [DEBUG] Failed at Step 3: OpenF1 rejected '{target_session}'.")
             return None
             
         if not sessions:
-            print(f"❌ [DEBUG] Failed at Step 3: '{target_session}' has not happened yet!")
             return None
             
         quali_session_key = sessions[0]["session_key"]
-        print(f"✅ [DEBUG] Step 3 Passed: Found Session Key {quali_session_key}")
 
         positions_r = requests.get(
             "https://api.openf1.org/v1/position",
@@ -378,10 +402,8 @@ def get_quali_grid(race_name):
         ).json()
         
         if not positions_r or not isinstance(positions_r, list):
-            print("❌ [DEBUG] Failed at Step 4: Session exists, but the API returned no position telemetry.")
             return None
 
-        print(f"✅ [DEBUG] Step 4 Passed: Downloaded {len(positions_r)} telemetry records.")
 
         latest = {}
         for entry in positions_r:
@@ -395,14 +417,11 @@ def get_quali_grid(race_name):
                 grid[name] = pos
 
         if not grid:
-            print("❌ [DEBUG] Failed at Step 5: Driver numbers didn't match dictionary!")
             return None
 
-        print("🎉 [DEBUG] SUCCESS! Actual Grid Generated!")
         return grid
 
     except Exception as e:
-        print(f"❌ [DEBUG] A Python error crashed the function: {e}")
         return None
 
 
