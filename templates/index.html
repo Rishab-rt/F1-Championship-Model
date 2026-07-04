@@ -93,13 +93,11 @@
         const maxRequired = Number("{{ required }}");
         
         function selectDriver(cardElement, driverName) {
-            // Prevent selecting the same driver twice or exceeding the required limit
+
             if (selectedDrivers.includes(driverName) || selectedDrivers.length >= maxRequired) return;
         
-            // Add driver to array tracking the current placements
             selectedDrivers.push(driverName);
-        
-            // Fade the driver card out slightly to show it's selected
+
             cardElement.style.opacity = "0.4";
             cardElement.style.pointerEvents = "none";
         
@@ -108,41 +106,29 @@
         
         function updateUI() {
             const listContainer = document.getElementById('placement-list');
-            listContainer.innerHTML = ''; // Reset UI list
-        
-            // Render the active choices into the visual leaderboard
+            listContainer.innerHTML = '';
             selectedDrivers.forEach((driver, idx) => {
                 listContainer.innerHTML += `
                     <li class="placement-row">
                         <span class="placement-pos">${idx + 1}</span>
                         <span class="placement-driver">${driver}</span>
                     </li>`;
-                
-                // Match it up to our hidden inputs so Flask can read it on submit
                 document.getElementById(`hidden_driver_${idx + 1}`).value = driver;
             });
-        
-            // Handle structural layout placeholders if the list isn't fully chosen yet
             for (let i = selectedDrivers.length; i < maxRequired; i++) {
                 listContainer.innerHTML += `<li class="placement-row empty">Waiting for selection...</li>`;
             }
-        
-            // Enable submission button only when all scoring positions are allocated
             document.getElementById('submit-btn').disabled = (selectedDrivers.length !== maxRequired);
         }
         
         function resetSelection() {
             selectedDrivers = [];
             updateUI();
-            
-            // Restore all structural cards back to full visibility
             const cards = document.querySelectorAll('.driver-card');
             cards.forEach(card => {
                 card.style.opacity = "1";
                 card.style.pointerEvents = "auto";
             });
-            
-            // Wipe form hidden elements completely clean
             for (let i = 1; i <= maxRequired; i++) {
                 document.getElementById(`hidden_driver_${i}`).value = '';
             }
