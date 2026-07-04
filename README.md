@@ -6,7 +6,6 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 
 - **Race Input** — Click-to-place driver cards to input predicted finishing orders race by race
 - **Live Sync** — Auto-sync real 2026 race results from OpenF1 API with source tracking (manual/api/simulation)
-- **Points Tracking** — Full F1 scoring system including sprint weekends (8/7/6... for sprints, 25/18/15... for races)
 - **Driver Standings** — Real-time championship table with medal indicators 🥇🥈🥉
 - **Constructor Standings** — Team points aggregated from driver results
 - **Edit Past Races** — Go back and change any previous result with full points recalculation
@@ -32,3 +31,34 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 - **Frontend** — Bootstrap 5, custom CSS, Barlow Condensed + Inter fonts, Chart.js
 - **ML** — XGBoost, scikit-learn, pandas, numpy, joblib
 - **APIs** — OpenF1 (live 2026 data), Jolpica/Ergast (historical data), Open-Meteo (weather)
+
+## How to Run
+
+- **Step 1** — Run the following commands in your terminal: git clone https://github.com/Rishab-rt/F1-Chamionship-Model                                                         cd F1-Chamionship-Model
+
+- **Step 2** — Create your Virtual Environment
+    - Windows
+        - python -m venv venv
+          venv\Scripts\activate
+    - Mac
+        - python3 -m venv venv
+          source venv/bin/activate
+
+- **Step 3** - Install Dependencies:
+    - Run: pip install -r requirements.txt
+
+- **Step 4** - Set up Local db
+    - Create a new file in the project folder called .env. Open it and add the following line so the app creates a private database just for you on your machine: DATABASE_URL=sqlite:///f1_local_data.db
+
+- **Step 5** - Train the Model
+    - Run: python train_model.py or Run: python3 train_model.py
+
+- **Step 6** - Run the App
+    - Run: python app.py or Run: python3 app.py
+
+- **Step 7** - View the App
+    - Go to your browser and paste: http://127.0.0.1:3000
+
+- **Enjoy and Leave Feedback at** - https://forms.gle/VfGBejQggBmMwdgX8
+
+

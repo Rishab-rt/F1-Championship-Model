@@ -45,12 +45,11 @@ def get_historical_weather(lat, lon, date_str, cache={}):
         rain, temp = 0.0, 20.0
         
     except (KeyError, IndexError, TypeError) as e:
-        # This catches issues if Open-Meteo changes their JSON format
         logging.error(f"Data parsing error for weather on {date_str}. Unexpected JSON structure: {e}")
         rain, temp = 0.0, 20.0
         
     except Exception as e:
-        # The ultimate fallback for anything totally unexpected
+        #fallback
         logging.error(f"An unexpected error occurred while fetching weather: {e}")
         rain, temp = 0.0, 20.0
     
