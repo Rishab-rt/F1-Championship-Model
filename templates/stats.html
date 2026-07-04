@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Season Stats</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
-</head>
-<body>
-{% include 'navbar.html' %}
-<div class="f1-container">
+{% extends "base.html" %}
 
+{% block title %}Season Stats{% endblock %}
+
+{% block content %}
     <div class="f1-header">
         <h1>Season Stats</h1>
         <span class="race-badge">After {{ current_race_index }} races</span>
@@ -82,7 +73,6 @@
 
             {% set total = data.d1_points + data.d2_points %}
             {% set d1_pct = (data.d1_points / total * 100) if total > 0 else 50 %}
-            <!-- Points -->
             <div class="h2h-row">
                 <span class="h2h-label">Points</span>
                 <span class="h2h-value">{{ data.d1_points }}</span>
@@ -96,7 +86,6 @@
 
             {% set total_wins = data.d1_wins + data.d2_wins %}
             {% set d1_wins_pct = (data.d1_wins / total_wins * 100) if total_wins > 0 else 50 %}
-            <!-- Wins -->
             <div class="h2h-row">
                 <span class="h2h-label">Wins</span>
                 <span class="h2h-value">{{ data.d1_wins }}</span>
@@ -110,7 +99,6 @@
 
             {% set total_podiums = data.d1_podiums + data.d2_podiums %}
             {% set d1_pod_pct = (data.d1_podiums / total_podiums * 100) if total_podiums > 0 else 50 %}
-            <!-- Podiums -->
             <div class="h2h-row">
                 <span class="h2h-label">Podiums</span>
                 <span class="h2h-value">{{ data.d1_podiums }}</span>
@@ -124,7 +112,6 @@
 
             {% set total_battles = data.d1_ahead + data.d2_ahead %}
             {% set d1_battle_pct = (data.d1_ahead / total_battles * 100) if total_battles > 0 else 50 %}
-            <!-- Teammate battles -->
             <div class="h2h-row">
                 <span class="h2h-label">Ahead of teammate</span>
                 <span class="h2h-value">{{ data.d1_ahead }}</span>
@@ -139,9 +126,9 @@
         </div>
         {% endfor %}
     </div>
+{% endblock %}
 
-</div>
-
+{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const driverColors = {
@@ -278,5 +265,4 @@
         }
     });
 </script>
-</body>
-</html>
+{% endblock %}

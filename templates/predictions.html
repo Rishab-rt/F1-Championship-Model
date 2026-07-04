@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Season Predictions</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
-</head>
-<body>
-{% include 'navbar.html' %}
-<div class="f1-container">
+{% extends "base.html" %}
 
+{% block title %}Season Predictions{% endblock %}
+
+{% block content %}
     <div class="f1-header">
         <h1>Season Predictions</h1>
     </div>
@@ -23,7 +14,6 @@
         </div>
     </div>
 
-    <!-- Tabs -->
     <div style="display: flex; gap: 8px; margin-bottom: 16px;">
         <button class="circuit-btn race-edit-pill" id="tab-drivers"
                 onclick="showTab('drivers', this)"
@@ -36,7 +26,6 @@
         </button>
     </div>
 
-    <!-- DRIVERS TAB -->
     <div id="panel-drivers">
         <div class="f1-card">
             <h2 class="section-heading">Projected Driver Championship</h2>
@@ -99,7 +88,6 @@
         </div>
     </div>
 
-    <!-- CONSTRUCTORS TAB -->
     <div id="panel-constructors" style="display: none;">
         <div class="f1-card">
             <h2 class="section-heading">Projected Constructor Championship</h2>
@@ -154,9 +142,9 @@
     <div style="display: flex; gap: 8px; margin-top: 16px;">
         <a href="/predictions" class="btn-papaya-f1" style="text-decoration: none; padding: 10px 20px; border-radius: 8px;">Run again</a>
     </div>
+{% endblock %}
 
-</div>
-
+{% block scripts %}
 <script>
 function showTab(tab, btn) {
     document.getElementById('panel-drivers').style.display = tab === 'drivers' ? 'block' : 'none';
@@ -169,6 +157,4 @@ function showTab(tab, btn) {
     btn.style.color = 'var(--f1-papaya)';
 }
 </script>
-
-</body>
-</html>
+{% endblock %}
