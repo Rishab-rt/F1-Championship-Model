@@ -34,7 +34,7 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 
 ## How to Run
 
-- **Step 1** — Run the following commands in your terminal: git clone https://github.com/Rishab-rt/F1-Chamionship-Model                                                         cd F1-Chamionship-Model
+- **Step 1** — Run the following commands in your terminal: git clone https://github.com/Rishab-rt/F1-Chamionship-Model                                                         cd F1-Championship-Model
 
 - **Step 2** — Create your Virtual Environment
     - Windows
