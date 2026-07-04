@@ -114,6 +114,7 @@ race_session_keys = {
     "Monaco Grand Prix": 11299,
     "Spanish Grand Prix": 11307,
     "Austrian Grand Prix": 11315,
+    "Silverstone Sprint": 11321,
 }
 
 circuit_info = {
