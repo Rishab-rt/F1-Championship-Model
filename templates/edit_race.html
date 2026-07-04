@@ -71,11 +71,10 @@
 </div>
 
 <script>
-    // Pre-fill from existing results
+
     let selectedDrivers = JSON.parse('{{ existing_order | tojson | safe }}');
     const maxRequired = parseInt('{{ required }}', 10);
 
-    // Fade out already-selected drivers on page load
     window.addEventListener('load', () => {
         selectedDrivers.forEach(name => {
             const card = document.getElementById(`card-${name}`);
