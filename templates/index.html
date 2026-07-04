@@ -1,17 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 2026 Simulator</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
-</head>
-<body>
-    {% include 'navbar.html' %}
-    <div class="f1-container">
+{% extends "base.html" %}
 
+{% block title %}F1 2026 Simulator{% endblock %}
+
+{% block content %}
     <div class="f1-header">
         <h1>2026 F1 Season Simulator</h1>
         <span class="race-badge">Race {{ current_race_index + 1 }} of {{ races|length }}</span>
@@ -27,114 +18,111 @@
         <div class="event-name">{{ race }}</div>
     </div>
         
-        {% if error %}
-            <div class="alert alert-danger shadow-sm d-flex align-items-center" role="alert">
-                <span>⚠️ <strong>Error:</strong> {{ error }}</span>
-            </div>
-        {% endif %}
-
-        <div style="display: flex; justify-content: flex-end; padding-right: 24px; margin-bottom: 16px;">
-            <form action="/reset-season" method="POST" onsubmit="return confirm('Are you sure you want to completely wipe all standings and restart the 2026 season?');">
-                <button type="submit" class="btn-danger-f1">
-                    Clear & Restart Season
-                </button>
-            </form>
+    {% if error %}
+        <div class="alert alert-danger shadow-sm d-flex align-items-center" role="alert">
+            <span>⚠️ <strong>Error:</strong> {{ error }}</span>
         </div>
-        
-        <div class="f1-card">
-            <div>
-                <h2 class="race-heading">Race: <span class="race-heading-name">{{ race }}</span></h2>
-                
-                {% if error %}
-                    <div class="alert alert-danger">{{ error }}</div>
-                {% endif %}
-            
-                <div class="f1-inner-card">
-                    <h5 class="section-label">Current Placements</h5>
-                    <ol id="placement-list" class="placement-list">
-                        {% for p in range(required) %}
-                            <li class="placement-row empty">
-                                <span class="placement-pos">{{ p + 1 }}</span>
-                                Waiting for selection...
-                            </li>
-                        {% endfor %}
-                    </ol>
-                    
-                    <form id="results-form" method="POST" class="mt-3">
-                        {% for i in range(1, required + 1) %}
-                            <input type="hidden" name="driver_{{ i }}" id="hidden_driver_{{ i }}">
-                        {% endfor %}
-                        <div class="btn-row">
-                            <button type="button" class="btn-ghost-f1" onclick="resetSelection()">Reset</button>
-                            <button type="submit" class="btn-papaya-f1" id="submit-btn" disabled>Submit results</button>
-                        </div>
-                    </form>
-                </div>
-            
-                <h5 class="section-label">Select Drivers</h5>
-                <div class="row g-2" id="driver-grid">
-                    {% for driver in driver_list %}
-                    <div class="col-6 col-md-3">
-                        <div class="driver-card team-{{ driver_teams[driver] | lower | replace(' ', '') }}"
-                             onclick="selectDriver(this, '{{ driver }}')">
-                            <div class="card-title">{{ driver }}</div>
-                            <div class="team-name">{{ driver_teams[driver] }}</div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+    {% endif %}
 
-        
-    </div>
-    <script>
-        let selectedDrivers = [];
-        const maxRequired = Number("{{ required }}");
-        
-        function selectDriver(cardElement, driverName) {
-
-            if (selectedDrivers.includes(driverName) || selectedDrivers.length >= maxRequired) return;
-        
-            selectedDrivers.push(driverName);
-
-            cardElement.style.opacity = "0.4";
-            cardElement.style.pointerEvents = "none";
-        
-            updateUI();
-        }
-        
-        function updateUI() {
-            const listContainer = document.getElementById('placement-list');
-            listContainer.innerHTML = '';
-            selectedDrivers.forEach((driver, idx) => {
-                listContainer.innerHTML += `
-                    <li class="placement-row">
-                        <span class="placement-pos">${idx + 1}</span>
-                        <span class="placement-driver">${driver}</span>
-                    </li>`;
-                document.getElementById(`hidden_driver_${idx + 1}`).value = driver;
-            });
-            for (let i = selectedDrivers.length; i < maxRequired; i++) {
-                listContainer.innerHTML += `<li class="placement-row empty">Waiting for selection...</li>`;
-            }
-            document.getElementById('submit-btn').disabled = (selectedDrivers.length !== maxRequired);
-        }
-        
-        function resetSelection() {
-            selectedDrivers = [];
-            updateUI();
-            const cards = document.querySelectorAll('.driver-card');
-            cards.forEach(card => {
-                card.style.opacity = "1";
-                card.style.pointerEvents = "auto";
-            });
-            for (let i = 1; i <= maxRequired; i++) {
-                document.getElementById(`hidden_driver_${i}`).value = '';
-            }
-        }
-        </script>
+    <div style="display: flex; justify-content: flex-end; padding-right: 24px; margin-bottom: 16px;">
+        <form action="/reset-season" method="POST" onsubmit="return confirm('Are you sure you want to completely wipe all standings and restart the 2026 season?');">
+            <button type="submit" class="btn-danger-f1">
+                Clear & Restart Season
+            </button>
+        </form>
     </div>
     
-</body>
-</html>
+    <div class="f1-card">
+        <div>
+            <h2 class="race-heading">Race: <span class="race-heading-name">{{ race }}</span></h2>
+            
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+        
+            <div class="f1-inner-card">
+                <h5 class="section-label">Current Placements</h5>
+                <ol id="placement-list" class="placement-list">
+                    {% for p in range(required) %}
+                        <li class="placement-row empty">
+                            <span class="placement-pos">{{ p + 1 }}</span>
+                            Waiting for selection...
+                        </li>
+                    {% endfor %}
+                </ol>
+                
+                <form id="results-form" method="POST" class="mt-3">
+                    {% for i in range(1, required + 1) %}
+                        <input type="hidden" name="driver_{{ i }}" id="hidden_driver_{{ i }}">
+                    {% endfor %}
+                    <div class="btn-row">
+                        <button type="button" class="btn-ghost-f1" onclick="resetSelection()">Reset</button>
+                        <button type="submit" class="btn-papaya-f1" id="submit-btn" disabled>Submit results</button>
+                    </div>
+                </form>
+            </div>
+        
+            <h5 class="section-label">Select Drivers</h5>
+            <div class="row g-2" id="driver-grid">
+                {% for driver in driver_list %}
+                <div class="col-6 col-md-3">
+                    <div class="driver-card team-{{ driver_teams[driver] | lower | replace(' ', '') }}"
+                         onclick="selectDriver(this, '{{ driver }}')">
+                        <div class="card-title">{{ driver }}</div>
+                        <div class="team-name">{{ driver_teams[driver] }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedDrivers = [];
+    const maxRequired = Number("{{ required }}");
+    
+    function selectDriver(cardElement, driverName) {
+
+        if (selectedDrivers.includes(driverName) || selectedDrivers.length >= maxRequired) return;
+    
+        selectedDrivers.push(driverName);
+
+        cardElement.style.opacity = "0.4";
+        cardElement.style.pointerEvents = "none";
+    
+        updateUI();
+    }
+    
+    function updateUI() {
+        const listContainer = document.getElementById('placement-list');
+        listContainer.innerHTML = '';
+        selectedDrivers.forEach((driver, idx) => {
+            listContainer.innerHTML += `
+                <li class="placement-row">
+                    <span class="placement-pos">${idx + 1}</span>
+                    <span class="placement-driver">${driver}</span>
+                </li>`;
+            document.getElementById(`hidden_driver_${idx + 1}`).value = driver;
+        });
+        for (let i = selectedDrivers.length; i < maxRequired; i++) {
+            listContainer.innerHTML += `<li class="placement-row empty">Waiting for selection...</li>`;
+        }
+        document.getElementById('submit-btn').disabled = (selectedDrivers.length !== maxRequired);
+    }
+    
+    function resetSelection() {
+        selectedDrivers = [];
+        updateUI();
+        const cards = document.querySelectorAll('.driver-card');
+        cards.forEach(card => {
+            card.style.opacity = "1";
+            card.style.pointerEvents = "auto";
+        });
+        for (let i = 1; i <= maxRequired; i++) {
+            document.getElementById(`hidden_driver_${i}`).value = '';
+        }
+    }
+</script>
+{% endblock %}

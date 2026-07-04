@@ -1,148 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 Season Champion</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='f1.css') }}">
-    <style>
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-10px); }
-        }
-        .finale-divider {
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--f1-red), transparent);
-            margin: 32px 0;
-        }
-        .finale-podium {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 12px;
-            margin: 32px 0 8px;
-        }
-        .finale-podium-slot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-        .finale-podium-crown {
-            font-size: 48px;
-            animation: bounce 1s infinite alternate;
-            margin-bottom: 4px;
-        }
-        .finale-podium-name {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 2px;
-        }
-        .finale-podium-team {
-            font-size: 12px;
-            color: var(--f1-muted);
-            margin-bottom: 4px;
-        }
-        .finale-podium-pts {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 18px;
-            color: var(--f1-papaya);
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .finale-podium-block {
-            width: 140px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 36px;
-            font-weight: 700;
-            border-radius: 6px 6px 0 0;
-            color: #1a1a1a;
-        }
-        .finale-podium-block.p1 { height: 120px; background: gold; }
-        .finale-podium-block.p2 { height: 90px; background: silver; }
-        .finale-podium-block.p3 { height: 70px; background: #cd7f32; }
-        .constructor-cards {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-        }
-        .constructor-card {
-            background: var(--f1-surface);
-            border: 0.5px solid var(--f1-border);
-            border-radius: 12px;
-            padding: 24px 20px;
-            text-align: center;
-            width: 200px;
-            min-height: 160px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .constructor-card.p1 { border-top: 3px solid gold; }
-        .constructor-card.p2 { border-top: 3px solid silver; }
-        .constructor-card.p3 { border-top: 3px solid #cd7f32; }
-        .constructor-pos {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 48px;
-            font-weight: 700;
-            line-height: 1;
-            margin-bottom: 12px;
-        }
-        .constructor-card.p1 .constructor-pos { color: gold; }
-        .constructor-card.p2 .constructor-pos { color: silver; }
-        .constructor-card.p3 .constructor-pos { color: #cd7f32; }
-        .constructor-name {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 20px;
-            font-weight: 600;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .constructor-pts {
-            font-size: 13px;
-            color: var(--f1-papaya);
-            font-weight: 500;
-            margin-top: 4px;
-        }
-        canvas#confetti-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        }
-    </style>
-</head>
-<body>
-{% include 'navbar.html' %}
-<canvas id="confetti-canvas"></canvas>
+{% extends "base.html" %}
 
-<div class="f1-container" style="max-width: 900px;">
+{% block title %}2026 Season Champion{% endblock %}
+
+{% block container_style %}style="max-width: 900px;"{% endblock %}
+
+{% block extra_head %}
+<style>
+    @keyframes bounce {
+        from { transform: translateY(0); }
+        to { transform: translateY(-10px); }
+    }
+    .finale-divider {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, var(--f1-red), transparent);
+        margin: 32px 0;
+    }
+    .finale-podium {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 12px;
+        margin: 32px 0 8px;
+    }
+    .finale-podium-slot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    .finale-podium-crown {
+        font-size: 48px;
+        animation: bounce 1s infinite alternate;
+        margin-bottom: 4px;
+    }
+    .finale-podium-name {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+    }
+    .finale-podium-team {
+        font-size: 12px;
+        color: var(--f1-muted);
+        margin-bottom: 4px;
+    }
+    .finale-podium-pts {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 18px;
+        color: var(--f1-papaya);
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .finale-podium-block {
+        width: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 36px;
+        font-weight: 700;
+        border-radius: 6px 6px 0 0;
+        color: #1a1a1a;
+    }
+    .finale-podium-block.p1 { height: 120px; background: gold; }
+    .finale-podium-block.p2 { height: 90px; background: silver; }
+    .finale-podium-block.p3 { height: 70px; background: #cd7f32; }
+    .constructor-cards {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+    .constructor-card {
+        background: var(--f1-surface);
+        border: 0.5px solid var(--f1-border);
+        border-radius: 12px;
+        padding: 24px 20px;
+        text-align: center;
+        width: 200px;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .constructor-card.p1 { border-top: 3px solid gold; }
+    .constructor-card.p2 { border-top: 3px solid silver; }
+    .constructor-card.p3 { border-top: 3px solid #cd7f32; }
+    .constructor-pos {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 48px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 12px;
+    }
+    .constructor-card.p1 .constructor-pos { color: gold; }
+    .constructor-card.p2 .constructor-pos { color: silver; }
+    .constructor-card.p3 .constructor-pos { color: #cd7f32; }
+    .constructor-name {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .constructor-pts {
+        font-size: 13px;
+        color: var(--f1-papaya);
+        font-weight: 500;
+        margin-top: 4px;
+    }
+    canvas#confetti-canvas {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<canvas id="confetti-canvas"></canvas>
 
     <div class="f1-header">
         <h1>2026 Season Complete</h1>
         <span class="race-badge">Final Results</span>
     </div>
 
-    <!-- Driver Podium -->
     <div class="f1-card">
         <h2 class="section-heading">Driver Championship</h2>
         <div class="finale-podium">
 
-            <!-- P2 -->
             <div class="finale-podium-slot">
                 <div class="finale-podium-name">{{ drivers[1].name }}</div>
                 <div class="finale-podium-team">{{ drivers[1].team }}</div>
@@ -150,7 +144,6 @@
                 <div class="finale-podium-block p2">2</div>
             </div>
 
-            <!-- P1 — Champion -->
             <div class="finale-podium-slot">
                 <div class="finale-podium-crown">👑</div>
                 <div class="finale-podium-name" style="font-size: 28px; color: gold;">{{ drivers[0].name }}</div>
@@ -159,7 +152,6 @@
                 <div class="finale-podium-block p1">1</div>
             </div>
 
-            <!-- P3 -->
             <div class="finale-podium-slot">
                 <div class="finale-podium-name">{{ drivers[2].name }}</div>
                 <div class="finale-podium-team">{{ drivers[2].team }}</div>
@@ -172,7 +164,6 @@
 
     <div class="finale-divider"></div>
 
-    <!-- Constructor Cards — top 3 -->
     <div class="f1-card">
         <h2 class="section-heading">Constructor Championship</h2>
         <div class="constructor-cards">
@@ -189,7 +180,6 @@
 
     <div class="finale-divider"></div>
 
-    <!-- Full Driver Standings -->
     <div class="f1-card">
         <h2 class="section-heading">Final Driver Standings</h2>
         <table class="standings-table">
@@ -230,9 +220,9 @@
             📊 View Standings
         </a>
     </div>
+{% endblock %}
 
-</div>
-
+{% block scripts %}
 <script>
 const canvas = document.getElementById('confetti-canvas');
 const ctx = canvas.getContext('2d');
@@ -277,6 +267,4 @@ setTimeout(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }, 6000);
 </script>
-
-</body>
-</html>
+{% endblock %}
