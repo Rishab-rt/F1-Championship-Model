@@ -44,7 +44,7 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
           venv\Scripts\activate
     - Mac
         - python3 -m venv venv
-          source venv/bin/activate
+        - source venv/bin/activate
 
 - **Step 3** - Install Dependencies:
     - Run: pip install -r requirements.txt
