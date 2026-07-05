@@ -56,9 +56,9 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
     - Run: python train_model.py or Run: python3 train_model.py
 
 - **Step 6** - Initialize db
-    - If Windows, run: python -c "from app import app, db; app.app_context().push(); db.create_all()"
-    - If Mac, run: python3 -c "from app import app, db; app.app_context().push(); db.create_all()"
-
+    - Windows: python -c "from app import app, db; app.app_context().push(); db.create_all()"
+    - Mac: python3 -c "from app import app, db; app.app_context().push(); db.create_all()"
+    
 - **Step 7** - Run the App
     - Run: python app.py or Run: python3 app.py
 
