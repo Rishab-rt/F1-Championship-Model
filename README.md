@@ -52,12 +52,12 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 - **Step 4** - Set up Local db
     - Create a new file in the project folder called .env. Open it and add the following line so the app creates a private database just for you on your machine: DATABASE_URL=sqlite:///f1_local_data.db
 
-- **Step 5** - Initialize db
+- **Step 5** - Train the Model
+    - Run: python train_model.py or Run: python3 train_model.py
+
+- **Step 6** - Initialize db
     - If Windows, run: python -c "from app import app, db; app.app_context().push(); db.create_all()"
     - If Mac, run: python3 -c "from app import app, db; app.app_context().push(); db.create_all()"
-
-- **Step 6** - Train the Model
-    - Run: python train_model.py or Run: python3 train_model.py
 
 - **Step 7** - Run the App
     - Run: python app.py or Run: python3 app.py
