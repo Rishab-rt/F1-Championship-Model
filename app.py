@@ -1123,6 +1123,14 @@ def circuitguide():
 
 if __name__ == "__main__":
     with app.app_context():
+        # 1. Seed drivers if the database is empty
+        if Driver.query.count() == 0:
+            print("🏎️ Populating empty database with drivers...")
+            for name, team in driver_to_team.items():
+                db.session.add(Driver(name=name, team=team, points=0))
+            db.session.commit()
+            print("✅ Drivers loaded.")
+        # 2. Sync results and count races
         try:
             current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
             sync_results()
