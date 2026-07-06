@@ -435,82 +435,122 @@ def get_meeting_key(session_key):
     ).json()
     return r[0]["meeting_key"]
 
-
 def sync_results():
-    for race_name, session_key in race_session_keys.items():
-        print(f"Checking {race_name}...")
+    print("🔄 Fetching official final race classifications (including Sprints!)...")
+    Result.query.delete()
+    db.session.commit()
+    
+    schedule_url = "https://api.jolpi.ca/ergast/f1/2026.json"
+    try:
+        schedule_res = requests.get(schedule_url).json()
+        races_list = schedule_res["MRData"]["RaceTable"]["Races"]
+    except Exception as e:
+        print(f"⚠️ Could not fetch 2026 schedule: {e}")
+        return
+
+    for driver in Driver.query.all():
+        driver.points = 0
+    db.session.commit()
+
+    sprint_name_map = {
+        "Chinese Grand Prix": "China Sprint",
+        "Miami Grand Prix": "Miami Sprint",
+        "Canadian Grand Prix": "Canada Sprint",
+        "Austrian Grand Prix": "Austria Sprint",
+        "United States Grand Prix": "Austin Sprint",
+        "São Paulo Grand Prix": "Brazil Sprint",
+        "Qatar Grand Prix": "Qatar Sprint"
+    }
+
+    for race in races_list:
+        round_num = race["round"]
+        main_race_name = race["raceName"]
         
-        # Only skip if already synced from API — allow overwriting manual entries
-        existing = Result.query.filter_by(race_name=race_name, source="api").first()
-        if existing:
-            print(f"Already synced from API, skipping")
-            continue
-        
-        # Delete any manual entries for this race before inserting API data
-        Result.query.filter_by(race_name=race_name).delete()
-        db.session.commit()
-
-        print(f" --> Fetching from OpenF1")
-        response = requests.get(f"https://api.openf1.org/v1/position?session_key={session_key}")
-        positions = response.json()
-
-        if not isinstance(positions, list) or len(positions) == 0:
-            print(f"  → No data returned, skipping")
-            continue
-
-        final_positions = {}
-        for entry in positions:
-            driver_number = entry["driver_number"]
-            final_positions[driver_number] = entry["position"]
-
-        sorted_positions = sorted(final_positions.items(), key=lambda x: x[1])
-
-        for driver_number, position in sorted_positions:
-            driver_name = driver_number_to_name.get(driver_number)
-            if not driver_name:
+        sprint_url = f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/sprint.json"
+        try:
+            sprint_res = requests.get(sprint_url).json()
+            sprint_data = sprint_res["MRData"]["RaceTable"]["Races"]
+            
+            if len(sprint_data) > 0:
+                sprint_results = sprint_data[0]["SprintResults"]
+                sprint_name = sprint_name_map.get(main_race_name, f"{main_race_name} Sprint")
+                
+                print(f"🏎️ Syncing Sprint for Round {round_num}: {sprint_name}...")
+                
+                for entry in sprint_results:
+                    driver_last_name = entry["Driver"]["familyName"]
+                    final_position = int(entry["position"])
+                    
+                    local_driver = Driver.query.filter(Driver.name.like(f"%{driver_last_name}%")).first()
+                    if local_driver:
+                        db.session.add(Result(
+                            driver_id=local_driver.id,
+                            race_name=sprint_name,
+                            position=final_position,
+                            source="api"
+                        ))
+        except Exception:
+            pass 
+            
+        print(f"🏁 Syncing Main Race for Round {round_num}: {main_race_name}...")
+        results_url = f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/results.json"
+        try:
+            res_data = requests.get(results_url).json()
+            race_data = res_data["MRData"]["RaceTable"]["Races"]
+            
+            if len(race_data) == 0:
+                print(f"⏭️ Round {round_num} has no final classifications yet. Skipping.")
                 continue
-            driver = Driver.query.filter_by(name=driver_name).first()
-            if driver:
-                result = Result(driver_id=driver.id, race_name=race_name, position=position, source="api")
-                db.session.add(result)
+                
+            race_results = race_data[0]["Results"]
+        except Exception:
+            print(f"⏭️ Round {round_num} API error. Skipping.")
+            continue
+
+        for entry in race_results:
+            driver_last_name = entry["Driver"]["familyName"]
+            final_position = int(entry["position"])
+            
+            local_driver = Driver.query.filter(Driver.name.like(f"%{driver_last_name}%")).first()
+            if local_driver:
+                db.session.add(Result(
+                    driver_id=local_driver.id,
+                    race_name=main_race_name,
+                    position=final_position,
+                    source="api"
+                ))
 
         db.session.commit()
-
-    recalculate_all_points()
         
-
+    recalculate_all_points()
+    print("✅ All local standings perfectly synchronized with official classifications!")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     global current_race_index
-
-    # If season is over, force user to the standings page
     if current_race_index >= len(races):
         return redirect(url_for('standings'))
     
     current_race = races[current_race_index]
     if ("Sprint" in current_race):
-            current_points = [8, 7, 6, 5, 4, 3, 2, 1]
+        current_points = [8, 7, 6, 5, 4, 3, 2, 1]
     else:
-            current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+        current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
             
     required_count = len(current_points)
 
     error_message = None
 
     if request.method == "POST":
-        # 1. Rebuild the list by grabbing each dropdown value sequentially
         entered_drivers = []
         for i in range(1, required_count + 1):
             driver_name = request.form.get(f"driver_{i}")
             if driver_name:
                 entered_drivers.append(driver_name)
-        
-        # 2. Validation: We only need to check for duplicates now!
+
         if len(set(entered_drivers)) != len(entered_drivers):
             error_message = "⚠️ You selected the same driver multiple times. Every position must be unique!"
         else:
-            # If no errors, award the points to the correct drivers
             for i, driver_name in enumerate(entered_drivers):
                 driver = Driver.query.filter_by(name=driver_name).first()
                 if driver:
@@ -519,14 +559,10 @@ def index():
                     result = Result(driver_id=driver.id, race_name=current_race, position=i + 1, source = "manual")
                     db.session.add(result)
             
-            # Commit the changes permanently to the cloud
             db.session.commit()
-            # Move to the next race in the list
             current_race_index += 1    
-            # Refresh the home page so the next race shows up
             return redirect(url_for('index'))
         
-    # 3. Pull the drivers list from your DataFrame to populate the HTML dropdowns
     drivers_in_db = Driver.query.order_by(Driver.name).all()
     all_drivers = [d.name for d in drivers_in_db]
         
@@ -543,7 +579,6 @@ def index():
 def standings():
     drivers = Driver.query.all()
     
-    # Python only handles the sorting logic
     def f1_sorting_key(driver):
         finish_counts = [0] * 20 
         for r in driver.results:
@@ -553,13 +588,11 @@ def standings():
 
     sorted_drivers = sorted(drivers, key=f1_sorting_key, reverse=True)
 
-    # Process constructors simply
     constructors_dict = {}
     for d in drivers:
         constructors_dict[d.team] = constructors_dict.get(d.team, 0) + d.points
     sorted_constructors = sorted(constructors_dict.items(), key=lambda x: x[1], reverse=True)
 
-    # Just send the RAW lists to the HTML. No HTML strings here!
     return render_template(
         "standings.html", 
         drivers=sorted_drivers, 
@@ -590,7 +623,6 @@ def edit_race(race_index):
     points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
     required_count = len(points_scale)
 
-    # Get the existing results for this race so we can pre-fill the form
     existing_results = Result.query.filter_by(race_name=race_name).order_by(Result.position).all()
     existing_order = [r.driver.name for r in existing_results]
 
@@ -615,7 +647,6 @@ def edit_race(race_index):
                                    error=error,
                                    race_index=race_index)
 
-        # Delete old results for this race and write new ones
         Result.query.filter_by(race_name=race_name).delete()
         for i, driver_name in enumerate(entered_drivers):
             driver = Driver.query.filter_by(name=driver_name).first()
@@ -650,7 +681,6 @@ def stats():
     sorted_drivers = sorted(drivers, key=lambda d: d.points, reverse=True)
     top10 = sorted_drivers[:10]
 
-    # Fetch all results once for efficiency
     all_results = Result.query.all()
     results_lookup = {}
     for r in all_results:
@@ -785,7 +815,6 @@ def predictions():
             "circuit_avg": avg_position
         }
 
-    # --- Cache all DB queries before sim loop ---
     circuit_avg_cache = {}
     for driver in sorted_drivers:
         for race_name in remaining_races:
@@ -797,20 +826,17 @@ def predictions():
                 if circuit_results else driver_features[driver.name]["driver_form"]
             )
 
-    # --- Cache weather before sim loop ---
     race_weather_cache = {}
     for race_name in remaining_races:
         lat, lon = race_coords.get(race_name, ("0", "0"))
         race_date = race_dates.get(race_name, str(date_type.today()))
         race_weather_cache[race_name] = get_race_weather(lat, lon, race_date)
 
-    # --- Pre-build static feature arrays per driver (things that don't change per race) ---
     driver_form_arr = np.array([driver_features[n]["driver_form"] for n in all_driver_names])
     constructor_form_arr = np.array([driver_features[n]["constructor_form"] for n in all_driver_names])
     cumulative_pts_arr = np.array([driver_features[n]["cumulative_points"] for n in all_driver_names])
     name_to_idx = {name: i for i, name in enumerate(all_driver_names)}
 
-    # --- Sim loop ---
     total_points = np.array([driver_features[n]["cumulative_points"] for n in all_driver_names], dtype=float)
     total_points_accum = np.zeros(len(all_driver_names))
     championship_counts = np.zeros(len(all_driver_names))
@@ -823,18 +849,15 @@ def predictions():
             points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if is_sprint else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
             rain_mm, temp_c = race_weather_cache[race_name]
 
-            # Circuit avg per driver for this race from cache
             circuit_avg_arr = np.array([
                 circuit_avg_cache[(name, race_name)] for name in all_driver_names
             ])
 
-            # Noisy grid order
             noise = np.random.normal(0, 3, len(all_driver_names))
             grid_order_idx = np.argsort(driver_form_arr + noise)
             grid_positions = np.empty(len(all_driver_names), dtype=int)
             grid_positions[grid_order_idx] = np.arange(1, len(all_driver_names) + 1)
 
-            # Batch predict all drivers at once
             X_batch = np.column_stack([
                 grid_positions,
                 driver_form_arr,
@@ -846,7 +869,6 @@ def predictions():
             ])
             predicted_positions = model.predict(X_batch)
 
-            # Sort by predicted position and award points
             sorted_idx = np.argsort(predicted_positions)
             for pos, driver_idx in enumerate(sorted_idx):
                 if pos < len(points_scale):
@@ -856,7 +878,6 @@ def predictions():
         championship_counts[champion_idx] += 1
         total_points_accum += projected_points
 
-    # --- Driver standings ---
     avg_points = {all_driver_names[i]: round(total_points_accum[i] / N_SIMS) for i in range(len(all_driver_names))}
     projected_standings = sorted(avg_points.items(), key=lambda x: x[1], reverse=True)
 
@@ -865,7 +886,6 @@ def predictions():
         raw = round((championship_counts[i] / N_SIMS) * 100)
         championship_pct[name] = 0.5 if raw == 0 else min(95, raw)
 
-    # --- Constructor standings: sum driver avg points per team ---
     constructor_points = {}
     for name, pts in avg_points.items():
         team = drivers_dict[name].team
@@ -939,7 +959,6 @@ def raceprediction():
     N_SIMS = 1000
     all_driver_names = [d.name for d in sorted_drivers]
     
-    # Track per-driver position counts across simulations
     position_counts = {name: {} for name in all_driver_names}
     podium_counts = {name: 0 for name in all_driver_names}
 
@@ -974,7 +993,6 @@ def raceprediction():
             if actual_pos <= 3:
                 podium_counts[driver_name] += 1
 
-    # --- Final prediction: most common finishing position per driver ---
     race_predictions = []
     for driver_name in all_driver_names:
         counts = position_counts[driver_name]
@@ -1123,14 +1141,12 @@ def circuitguide():
 
 if __name__ == "__main__":
     with app.app_context():
-        # 1. Seed drivers if the database is empty
         if Driver.query.count() == 0:
             print("🏎️ Populating empty database with drivers...")
             for name, team in driver_to_team.items():
                 db.session.add(Driver(name=name, team=team, points=0))
             db.session.commit()
             print("✅ Drivers loaded.")
-        # 2. Sync results and count races
         try:
             current_race_index = Result.query.with_entities(Result.race_name).distinct().count()
             sync_results()
