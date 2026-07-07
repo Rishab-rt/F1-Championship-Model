@@ -22,9 +22,12 @@ def recalculate_all_points():
     db.session.commit()
 
 def get_medal_index(index):
-    if index == 1: return "1 🥇"
-    elif index == 2: return "2 🥈"
-    elif index == 3: return "3 🥉"
+    if index == 1: 
+        return "1 🥇"
+    elif index == 2: 
+        return "2 🥈"
+    elif index == 3: 
+        return "3 🥉"
     return str(index)
 
 def get_circuit_chaos(circuit_id):
@@ -38,13 +41,17 @@ def get_circuit_chaos(circuit_id):
                     try:
                         grid = int(result["grid"])
                         pos = int(result["position"])
-                        if grid > 0: deltas.append(abs(grid - pos))
+                        if grid > 0: 
+                            deltas.append(abs(grid - pos))
                     except (ValueError, KeyError):
                         continue
         except Exception:
             continue
-    return round(np.mean(deltas), 2) if deltas else 2.0
-
+    if deltas:
+        return round(np.mean(deltas),2)
+    else:
+        return 2.0
+    
 def get_race_weather(lat, lon, race_date_str):
     try:
         race_date = datetime.strptime(race_date_str, "%Y-%m-%d").date()
@@ -53,7 +60,11 @@ def get_race_weather(lat, lon, race_date_str):
         else:
             url = "https://api.open-meteo.com/v1/forecast"
 
-        tz = "UTC" if (lat == "0" and lon == "0") else "auto"
+        if (lat == "0" and lon == "0"):
+            tz = "UTC"
+        else:
+            tz = "auto"
+
         params = {
             "latitude": lat, "longitude": lon, "start_date": race_date_str, 
             "end_date": race_date_str, "daily": "precipitation_sum,temperature_2m_max", "timezone": tz
@@ -74,27 +85,36 @@ def get_quali_grid(race_name):
     circuit_id = race_to_circuit_id.get(race_name)
     race_date = race_dates.get(race_name)
 
-    if not circuit_id or not race_date: return None
+    if not circuit_id or not race_date: 
+        return None
     year = race_date[:4]
     
     try:
         search_circuit = circuit_id.capitalize()
         meetings = requests.get("https://api.openf1.org/v1/meetings", params={"year": year, "circuit_short_name": search_circuit}, timeout=10).json()
         
-        if isinstance(meetings, dict) and 'detail' in meetings: return None
-        if not meetings: return None
+        if isinstance(meetings, dict) and 'detail' in meetings: 
+            return None
+        if not meetings: 
+            return None
             
         meeting_key = meetings[0]["meeting_key"]
-        target_session = "Sprint Qualifying" if "Sprint" in race_name else "Qualifying"
+        if "Sprint" in race_name:
+            target_session = "Sprint Qualifying"
+        else:
+            target_session = "Qualifying"
 
         sessions = requests.get("https://api.openf1.org/v1/sessions", params={"meeting_key": meeting_key, "session_name": target_session}, timeout=10).json()
-        if isinstance(sessions, dict) and 'detail' in sessions: return None
-        if not sessions: return None
+        if isinstance(sessions, dict) and 'detail' in sessions: 
+            return None
+        if not sessions: 
+            return None
             
         quali_session_key = sessions[0]["session_key"]
 
         positions_r = requests.get("https://api.openf1.org/v1/position", params={"session_key": quali_session_key}, timeout=10).json()
-        if not positions_r or not isinstance(positions_r, list): return None
+        if not positions_r or not isinstance(positions_r, list): 
+            return None
 
         latest = {}
         for entry in positions_r:
@@ -106,7 +126,11 @@ def get_quali_grid(race_name):
             name = driver_number_to_name.get(driver_num)
             if name: grid[name] = pos
 
-        return grid if grid else None
+        if grid:
+            return grid
+        else:
+            return None
+        
     except Exception:
         return None
 
@@ -115,7 +139,7 @@ def get_meeting_key(session_key):
     return r[0]["meeting_key"]
 
 def sync_results():
-    print("🔄 Fetching official final classifications...")
+    print("Fetching official final classifications...")
     Result.query.delete()
     db.session.commit()
     
@@ -124,7 +148,7 @@ def sync_results():
         schedule_res = requests.get(schedule_url).json()
         races_list = schedule_res["MRData"]["RaceTable"]["Races"]
     except Exception as e:
-        print(f"⚠️ Could not fetch 2026 schedule: {e}")
+        print(f"Could not fetch 2026 schedule: {e}")
         return
 
     for driver in Driver.query.all():
@@ -211,4 +235,4 @@ def sync_results():
         db.session.commit()
         
     recalculate_all_points()
-    print("✅ Local standings synchronized!")
+    print("Local standings synchronized!")

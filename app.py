@@ -23,23 +23,20 @@ app = create_app()
 
 if __name__ == "__main__":
     with app.app_context():
-        # Ensure database tables are created
         db.create_all()
         
-        # Populate empty DB on first run
         if Driver.query.count() == 0:
-            print("🏎️ Populating empty database with drivers...")
+            print("Populating empty database with drivers...")
             for name, team in driver_to_team.items():
                 db.session.add(Driver(name=name, team=team, points=0))
             db.session.commit()
-            print("✅ Drivers loaded.")
+            print("Drivers loaded.")
             
         try:
-            # Tell routes.py how many races are in the database before booting!
             init_race_index()
             sync_results()
-            print("✅ Initial sync complete on boot.")
+            print("Initial sync complete on boot.")
         except Exception as e:
-            print(f"⚠️ Sync failed: {e}")
+            print(f"Sync failed: {e}")
             
     app.run(port=3000, debug=True)

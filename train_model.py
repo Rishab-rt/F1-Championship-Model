@@ -28,19 +28,13 @@ def get_historical_weather(lat, lon, date_str, cache={}):
 }
     
     try:
-        # 1. Make the request
         r = requests.get(url, params=params, timeout=10)
-        
-        # 2. Raise an error if the status code is bad (e.g., 404 or 500)
         r.raise_for_status()
-        
-        # 3. Parse the JSON
         data = r.json()
         rain = data["daily"]["precipitation_sum"][0] or 0.0
         temp = data["daily"]["temperature_2m_max"][0] or 20.0
         
     except requests.exceptions.RequestException as e:
-        # This catches network drops, timeouts, and bad HTTP status codes
         logging.error(f"Network/API error fetching weather for {date_str} at {lat}, {lon}: {e}")
         rain, temp = 0.0, 20.0
         
@@ -49,12 +43,10 @@ def get_historical_weather(lat, lon, date_str, cache={}):
         rain, temp = 0.0, 20.0
         
     except Exception as e:
-        #fallback
         logging.error(f"An unexpected error occurred while fetching weather: {e}")
         rain, temp = 0.0, 20.0
     
     cache[key] = (rain, temp)
-    # time.sleep(0.1) # (If using in your training script)
     return rain, temp
 
 def fetch_season(year):
@@ -103,8 +95,7 @@ def add_features(df):
     points_map = {1:25,2:18,3:15,4:12,5:10,6:8,7:6,8:4,9:2,10:1}
     df["points_scored"] = df["position"].map(points_map).fillna(0)
     df["cumulative_points"] = (
-        df.groupby(["season", "driver_code"])["points_scored"]
-        .cumsum().shift(1).fillna(0)
+        df.groupby(["season", "driver_code"])["points_scored"].cumsum().shift(1).fillna(0)
     )
 
     df["circuit_avg"] = (
