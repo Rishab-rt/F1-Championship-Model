@@ -7,21 +7,21 @@
         <span>Menu</span>
         <button class="nav-close" onclick="toggleMenu()">✕</button>
     </div>
-    <a href="/" class="nav-item">🏁 Race Input</a>
-    <a href="/standings" class="nav-item">📊 Standings</a>
-    <a href="/stats" class="nav-item">📈 Stats</a>
-    <a href="/predictions" class="nav-item">🔮 Season Prediction</a>
-    <a href="/raceprediction" class="nav-item">🏎️ Race Prediction</a>
-    <a href="/circuitguide" class="nav-item">🗺️ Circuit Guide</a>
+    <a href="/" class="nav-item">Race Input</a>
+    <a href="/standings" class="nav-item">Standings</a>
+    <a href="/stats" class="nav-item">Stats</a>
+    <a href="/predictions" class="nav-item">Season Prediction</a>
+    <a href="/raceprediction" class="nav-item">Race Prediction</a>
+    <a href="/circuitguide" class="nav-item">Circuit Guide</a>
     <div style="margin-top: auto; padding-top: 20px; border-top: 0.5px solid var(--f1-border);">
         <form action="/sync" method="POST">
             <button type="submit" class="nav-item" style="width: 100%; text-align: left; cursor: pointer; background: transparent; border: none;">
-                🔄 Sync Latest Results
+                Sync Latest Results
             </button>
         </form>
         <form action="/reset-season" method="POST" onsubmit="return confirm('Are you sure you want to completely wipe all standings and restart the 2026 season?');">
             <button type="submit" class="nav-item" style="width: 100%; text-align: left; cursor: pointer; background: transparent; border: none; color: #E24B4A;">
-                ⚠️ Clear & Restart Season
+                Clear & Restart Season
             </button>
         </form>
     </div>

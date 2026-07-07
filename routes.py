@@ -12,7 +12,6 @@ from data import *
 main = Blueprint('main', __name__)
 model = joblib.load("f1_model.pkl")
 
-# Master state for the live race calendar index
 current_race_index = 0
 
 def init_race_index():

@@ -17,7 +17,7 @@ driver_to_team = {
 
 with app.app_context():
     print("Connecting to Supabase and building tables...")
-    db.create_all()  # <-- This tells Supabase to physically create the 'driver' table!
+    db.create_all() 
     
     print("Checking if database needs roster population...")
     if Driver.query.count() == 0:
@@ -27,6 +27,6 @@ with app.app_context():
             db.session.add(new_driver)
         
         db.session.commit()
-        print("🎉 Database successfully initialized and seeded!")
+        print("Database successfully initialized and seeded!")
     else:
         print("Database tables exist and are already populated.")
