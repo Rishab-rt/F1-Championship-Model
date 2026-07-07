@@ -38,7 +38,7 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 - **Step 2** — Create your Virtual Environment
     - Windows
         - python -m venv venv
-          venv\Scripts\activate
+        - venv\Scripts\activate
     - Mac
         - python3 -m venv venv
         - source venv/bin/activate
