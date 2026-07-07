@@ -1,5 +1,6 @@
 import requests
 import numpy as np
+import time
 import logging
 from datetime import date as date_type, datetime
 from extensions import db
@@ -118,8 +119,9 @@ def sync_results():
     Result.query.delete()
     db.session.commit()
     
+    schedule_url = "https://api.jolpi.ca/ergast/f1/2026.json"
     try:
-        schedule_res = requests.get("https://api.jolpi.ca/ergast/f1/2026.json").json()
+        schedule_res = requests.get(schedule_url).json()
         races_list = schedule_res["MRData"]["RaceTable"]["Races"]
     except Exception as e:
         print(f"⚠️ Could not fetch 2026 schedule: {e}")
@@ -129,41 +131,82 @@ def sync_results():
         driver.points = 0
     db.session.commit()
 
+    race_name_map = {
+        "Barcelona Grand Prix": "Spanish Grand Prix",
+        "Belgian Grand Prix": "Belgian Grand Prix - SPA"
+    }
     sprint_name_map = {
-        "Chinese Grand Prix": "China Sprint", "Miami Grand Prix": "Miami Sprint",
-        "Canadian Grand Prix": "Canada Sprint", "Austrian Grand Prix": "Austria Sprint",
-        "United States Grand Prix": "Austin Sprint", "São Paulo Grand Prix": "Brazil Sprint",
-        "Qatar Grand Prix": "Qatar Sprint"
+        "Chinese Grand Prix": "China Sprint",
+        "Miami Grand Prix": "Miami Sprint",
+        "Canadian Grand Prix": "Canada Sprint",
+        "British Grand Prix": "Silverstone Sprint",
+        "Dutch Grand Prix": "Dutch Sprint",
+        "Singapore Grand Prix": "Singapore Sprint"
+    }
+    
+    driver_name_map = {
+        "Pérez": "Perez",
+        "Hülkenberg": "Hulkenberg",
+        "Lindblad": "Linblad"
     }
 
     for race in races_list:
+
+        time.sleep(0.5)
+
         round_num = race["round"]
-        main_race_name = race["raceName"]
+        raw_race_name = race["raceName"]
+        main_race_name = race_name_map.get(raw_race_name, raw_race_name)
         
+        # --- FETCH SPRINT ---
+        sprint_url = f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/sprint.json"
         try:
-            sprint_res = requests.get(f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/sprint.json").json()
+            sprint_res = requests.get(sprint_url).json()
             sprint_data = sprint_res["MRData"]["RaceTable"]["Races"]
+            
             if len(sprint_data) > 0:
                 sprint_results = sprint_data[0]["SprintResults"]
-                sprint_name = sprint_name_map.get(main_race_name, f"{main_race_name} Sprint")
+                sprint_name = sprint_name_map.get(raw_race_name, f"{main_race_name} Sprint")
+                
                 for entry in sprint_results:
-                    local_driver = Driver.query.filter(Driver.name.like(f"%{entry['Driver']['familyName']}%")).first()
+                    raw_driver_name = entry["Driver"]["familyName"]
+                    mapped_driver_name = driver_name_map.get(raw_driver_name, raw_driver_name)
+                    
+                    local_driver = Driver.query.filter(Driver.name.like(f"%{mapped_driver_name}%")).first()
                     if local_driver:
-                        db.session.add(Result(driver_id=local_driver.id, race_name=sprint_name, position=int(entry["position"]), source="api"))
+                        db.session.add(Result(
+                            driver_id=local_driver.id,
+                            race_name=sprint_name,
+                            position=int(entry["position"]),
+                            source="api"
+                        ))
         except Exception:
             pass 
             
+        results_url = f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/results.json"
         try:
-            res_data = requests.get(f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/results.json").json()
+            res_data = requests.get(results_url).json()
             race_data = res_data["MRData"]["RaceTable"]["Races"]
-            if len(race_data) == 0: continue
             
-            for entry in race_data[0]["Results"]:
-                local_driver = Driver.query.filter(Driver.name.like(f"%{entry['Driver']['familyName']}%")).first()
-                if local_driver:
-                    db.session.add(Result(driver_id=local_driver.id, race_name=main_race_name, position=int(entry["position"]), source="api"))
+            if len(race_data) == 0:
+                continue
+                
+            race_results = race_data[0]["Results"]
         except Exception:
             continue
+
+        for entry in race_results:
+            raw_driver_name = entry["Driver"]["familyName"]
+            mapped_driver_name = driver_name_map.get(raw_driver_name, raw_driver_name)
+            
+            local_driver = Driver.query.filter(Driver.name.like(f"%{mapped_driver_name}%")).first()
+            if local_driver:
+                db.session.add(Result(
+                    driver_id=local_driver.id,
+                    race_name=main_race_name,
+                    position=int(entry["position"]),
+                    source="api"
+                ))
 
         db.session.commit()
         
