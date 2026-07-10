@@ -25,18 +25,20 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
         
-        if Driver.query.count() == 0:
-            print("Populating empty database with drivers...")
-            for name, team in driver_to_team.items():
-                db.session.add(Driver(name=name, team=team, points=0))
-            db.session.commit()
-            print("Drivers loaded.")
+        if os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
             
-        try:
-            init_race_index()
-            sync_results()
-            print("Initial sync complete on boot.")
-        except Exception as e:
-            print(f"Sync failed: {e}")
+            if Driver.query.count() == 0:
+                print("Populating empty database with drivers...")
+                for name, team in driver_to_team.items():
+                    db.session.add(Driver(name=name, team=team, points=0))
+                db.session.commit()
+                print("Drivers loaded.")
+                
+            try:
+                init_race_index()
+                sync_results()
+                print("Initial sync complete on boot.")
+            except Exception as e:
+                print(f"Sync failed: {e}")
             
     app.run(port=3000, debug=True)
