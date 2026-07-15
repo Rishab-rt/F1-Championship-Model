@@ -50,7 +50,7 @@ def get_historical_weather(lat, lon, date_str, cache={}):
     return rain, temp
 
 def fetch_season(year):
-    url = f"https://api.jolpi.ca/ergast/f1/{year}/results.json?limit=100"
+    url = f"https://api.jolpi.ca/ergast/f1/{year}/results.json?limit=1000"
     response = requests.get(url)
     data = response.json()
     race_list = data["MRData"]["RaceTable"]["Races"]
@@ -120,24 +120,35 @@ df_all = pd.concat(all_seasons, ignore_index=True)
 df_all = add_features(df_all)
 print(f"Rows after feature engineering: {len(df_all)}")
 
-train_df = df_all[df_all["season"] < 2026]
-test_df = df_all[df_all["season"] == 2026]
+X = df_all[["grid", "driver_form", "constructor_form", "cumulative_points", "circuit_avg", "rain_mm", "temp_c"]]
+y = df_all["position"]
+weights = df_all["weight"]
 
-# 2. Split features, target, and weights for the training set
-X_train = train_df[["grid", "driver_form", "constructor_form", "cumulative_points", "circuit_avg", "rain_mm", "temp_c"]]
-y_train = train_df["position"]
-w_train = train_df["weight"]
-
-# 3. Split features, target, and weights for the testing set
-X_test = test_df[["grid", "driver_form", "constructor_form", "cumulative_points", "circuit_avg", "rain_mm", "temp_c"]]
-y_test = test_df["position"]
-w_test = test_df["weight"]
+X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
+    X, y, weights, test_size=0.2, random_state=42
+)
 
 model = XGBRegressor(n_estimators=400, learning_rate=0.1, max_depth=4)
 model.fit(X_train, y_train, sample_weight=w_train)
 
 y_pred = model.predict(X_test)
 mae = mean_absolute_error(y_test, y_pred)
+baseline_predictions = X_test["grid"]
+
+# 2. Calculate the MAE of the baseline
+baseline_mae = mean_absolute_error(y_test, baseline_predictions)
+
+# 3. Print the comparison
+print("\n--- PERFORMANCE REPORT ---")
+print(f"XGBoost Model MAE: {mae:.3f} positions")
+print(f"Naive Baseline MAE (Grid Position): {baseline_mae:.3f} positions")
+print("-" * 26)
+
+if mae < baseline_mae:
+    print(f"✅ Success! Your model beats the baseline by {(baseline_mae - mae):.3f} positions.")
+else:
+    print("❌ Your model is losing to the baseline guess. Time for more feature engineering!")
+
 print(f"MAE: {mae:.3f} positions")
 
 joblib.dump(model, "f1_model.pkl")
