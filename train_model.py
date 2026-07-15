@@ -50,7 +50,7 @@ def get_historical_weather(lat, lon, date_str, cache={}):
     return rain, temp
 
 def fetch_season(year):
-    url = f"https://api.jolpi.ca/ergast/f1/{year}/results.json?limit=100"
+    url = f"https://api.jolpi.ca/ergast/f1/{year}/results.json?limit=1000"
     response = requests.get(url)
     data = response.json()
     race_list = data["MRData"]["RaceTable"]["Races"]
