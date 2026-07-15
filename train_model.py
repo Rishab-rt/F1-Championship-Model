@@ -120,13 +120,18 @@ df_all = pd.concat(all_seasons, ignore_index=True)
 df_all = add_features(df_all)
 print(f"Rows after feature engineering: {len(df_all)}")
 
-X = df_all[["grid", "driver_form", "constructor_form", "cumulative_points", "circuit_avg", "rain_mm", "temp_c"]]
-y = df_all["position"]
-weights = df_all["weight"]
+train_df = df_all[df_all["season"] < 2026]
+test_df = df_all[df_all["season"] == 2026]
 
-X_train, X_test, y_train, y_test, w_train, w_test = train_test_split(
-    X, y, weights, test_size=0.2, random_state=42
-)
+# 2. Split features, target, and weights for the training set
+X_train = train_df[["grid", "driver_form", "constructor_form", "cumulative_points", "circuit_avg", "rain_mm", "temp_c"]]
+y_train = train_df["position"]
+w_train = train_df["weight"]
+
+# 3. Split features, target, and weights for the testing set
+X_test = test_df[["grid", "driver_form", "constructor_form", "cumulative_points", "circuit_avg", "rain_mm", "temp_c"]]
+y_test = test_df["position"]
+w_test = test_df["weight"]
 
 model = XGBRegressor(n_estimators=400, learning_rate=0.1, max_depth=4)
 model.fit(X_train, y_train, sample_weight=w_train)
