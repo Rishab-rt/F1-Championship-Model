@@ -33,26 +33,27 @@ def index():
         entered_drivers = []
         for i in range(1, required_count + 1):
             driver_name = request.form.get(f"driver_{i}")
-            if driver_name: entered_drivers.append(driver_name)
+            if driver_name: 
+                entered_drivers.append(driver_name)
 
-        if len(set(entered_drivers)) != len(entered_drivers):
-            error_message = "⚠️ You selected the same driver multiple times. Every position must be unique!"
-        else:
-            for i, driver_name in enumerate(entered_drivers):
-                driver = Driver.query.filter_by(name=driver_name).first()
-                if driver:
-                    driver.points += current_points[i]
-                    db.session.add(Result(driver_id=driver.id, race_name=current_race, position=i + 1, source="manual"))
-            db.session.commit()
-            current_race_index += 1    
-            return redirect(url_for('main.index'))
+        for i, driver_name in enumerate(entered_drivers):
+            driver = Driver.query.filter_by(name=driver_name).first()
+            if driver:
+                driver.points += current_points[i]
+                db.session.add(Result(driver_id=driver.id, race_name=current_race, position=i + 1, source="manual"))
+            
+        db.session.commit()
+        current_race_index += 1    
+        return redirect(url_for('main.index'))
         
     drivers_in_db = Driver.query.order_by(Driver.name).all()
     all_drivers = [d.name for d in drivers_in_db]
         
-    return render_template("index.html", race=current_race, required=required_count, error=error_message, 
-                           driver_list=all_drivers, current_race_index=current_race_index, races=races,
-                           driver_teams={d.name: d.team for d in drivers_in_db})
+    return render_template(
+        "index.html", race=current_race, required=required_count, error=error_message, 
+        driver_list=all_drivers, current_race_index=current_race_index, races=races,
+        driver_teams={d.name: d.team for d in drivers_in_db}
+        )
 
 @main.route("/standings")
 def standings():
