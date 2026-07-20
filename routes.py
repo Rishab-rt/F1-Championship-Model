@@ -152,7 +152,8 @@ def stats():
 
     h2h_data = {}
     for team, team_drivers in teams.items():
-        if len(team_drivers) != 2: continue
+        if len(team_drivers) != 2: 
+            continue
         d1, d2 = team_drivers[0], team_drivers[1]
         
         d1_ahead, d2_ahead = 0, 0
@@ -160,8 +161,10 @@ def stats():
             r1 = results_lookup.get((d1.id, race_name))
             r2 = results_lookup.get((d2.id, race_name))
             if r1 and r2:
-                if r1.position < r2.position: d1_ahead += 1
-                else: d2_ahead += 1
+                if r1.position < r2.position: 
+                    d1_ahead += 1
+                else: 
+                    d2_ahead += 1
 
         h2h_data[team] = {
             "d1": d1.name, "d2": d2.name, "d1_points": d1.points, "d2_points": d2.points,

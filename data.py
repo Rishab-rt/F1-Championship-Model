@@ -43,7 +43,7 @@ race_session_keys = {
     "Japanese Grand Prix": 11253, "Miami Sprint": 11275, "Miami Grand Prix": 11280,
     "Canada Sprint": 11286, "Canadian Grand Prix": 11291, "Monaco Grand Prix": 11299,
     "Spanish Grand Prix": 11307, "Austrian Grand Prix": 11315, "Silverstone Sprint": 11321,
-    "British Grand Prix": 11326,
+    "British Grand Prix": 11326, "Belgian Grand Prix": 11334,
 }
 
 circuit_info = {
