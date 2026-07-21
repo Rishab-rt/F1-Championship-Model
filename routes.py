@@ -25,7 +25,11 @@ def index():
         return redirect(url_for('main.standings'))
     
     current_race = races[current_race_index]
-    current_points = [8, 7, 6, 5, 4, 3, 2, 1] if "Sprint" in current_race else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+    if "Sprint" in current_race:
+        current_points = [8, 7, 6, 5, 4, 3, 2, 1]  
+    else:
+        current_points = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+
     required_count = len(current_points)
     error_message = None
 
@@ -88,7 +92,10 @@ def edit_race(race_index):
     if race_index >= current_race_index or race_index >= len(races): return redirect(url_for('main.index'))
     
     race_name = races[race_index]
-    points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if "Sprint" in race_name else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+    if "Sprint" in race_name:
+        points_scale = [8, 7, 6, 5, 4, 3, 2, 1] 
+    else:
+        points_scale = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
     required_count = len(points_scale)
 
     existing_results = Result.query.filter_by(race_name=race_name).order_by(Result.position).all()
@@ -105,8 +112,10 @@ def edit_race(race_index):
             if driver_name: entered_drivers.append(driver_name)
 
         if len(set(entered_drivers)) != len(entered_drivers):
-            return render_template("edit_race.html", race=race_name, required=required_count, driver_list=all_drivers,
-                                   driver_teams=driver_teams, existing_order=existing_order, error="Every position must be unique!", race_index=race_index)
+            return render_template(
+                "edit_race.html", race=race_name, required=required_count, driver_list=all_drivers,
+                driver_teams=driver_teams, existing_order=existing_order, error="Every position must be unique!", race_index=race_index
+                )
 
         Result.query.filter_by(race_name=race_name).delete()
         for i, driver_name in enumerate(entered_drivers):
@@ -136,7 +145,10 @@ def stats():
         race_points = []
         for race_name in races[:current_race_index]:
             result = results_lookup.get((driver.id, race_name))
-            points_scale = [8, 7, 6, 5, 4, 3, 2, 1] if "Sprint" in race_name else [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+            if "Sprint" in race_name:
+                points_scale = [8, 7, 6, 5, 4, 3, 2, 1]  
+            else:
+                points_scale = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
             if result and 1 <= result.position <= len(points_scale):
                 cumulative += points_scale[result.position - 1]
             race_points.append(cumulative)
@@ -173,9 +185,11 @@ def stats():
             "d1_ahead": d1_ahead, "d2_ahead": d2_ahead,
         }
 
-    return render_template("stats.html", timeline=timeline, race_labels=races[:current_race_index],
-                           driver_codes=driver_codes, top10=top10, current_race_index=current_race_index,
-                           heatmap=heatmap, all_drivers=sorted_drivers, h2h_data=h2h_data)
+    return render_template(
+        "stats.html", timeline=timeline, race_labels=races[:current_race_index],
+        driver_codes=driver_codes, top10=top10, current_race_index=current_race_index,
+        heatmap=heatmap, all_drivers=sorted_drivers, h2h_data=h2h_data
+        )
 
 @main.route("/sync", methods=["POST"])
 def sync():

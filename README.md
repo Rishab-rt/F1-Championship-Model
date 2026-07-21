@@ -16,10 +16,8 @@ A full-stack web application to simulate, track, and predict the 2026 Formula 1 
 
 ## ML Model
 
-- XGBoost regressor trained on weighted 2023–2026 data (2026 weighted 5x)
-- Features: grid position, driver form, constructor form (teammate average), cumulative points, circuit average, rain (mm), temperature (°C)
+- XGBoost regressor trained on weighted 2023–2026 data 
 - MAE: ~1.9 positions
-- Retrain anytime with `python3 train_model.py`
 
 ## Tech Stack
 
