@@ -1,7 +1,9 @@
 import requests
 import numpy as np
 import time
+import fastf1
 import logging
+from train_model import fetch_season
 from datetime import date as date_type, datetime
 from extensions import db
 from models import Driver, Result
@@ -139,7 +141,7 @@ def get_meeting_key(session_key):
     return r[0]["meeting_key"]
 
 def sync_results():
-    print("Fetching official final classifications...")
+    print("Fetching official final results...")
     Result.query.delete()
     db.session.commit()
     
@@ -182,7 +184,6 @@ def sync_results():
         raw_race_name = race["raceName"]
         main_race_name = race_name_map.get(raw_race_name, raw_race_name)
         
-        # --- FETCH SPRINT ---
         sprint_url = f"https://api.jolpi.ca/ergast/f1/2026/{round_num}/sprint.json"
         try:
             sprint_res = requests.get(sprint_url).json()
@@ -236,3 +237,40 @@ def sync_results():
         
     recalculate_all_points()
     print("Local standings synchronized!")
+
+fastf1.Cache.enable_cache('fastf1_cache') 
+def predict_safety_car(races, weather):
+    #Logic:
+    #get each year, iterate through each year of the same GP
+    #average the number of times Safety car occured 
+    #use factors like track width and weather and build harcoded numbers for risk factors
+
+    sc_stats = {race: {'total_races': 0, 'sc_count': 0} for race in races}
+    years = [2018,2019,2020,2021,2022,2023,2024,2025,2026]
+    now = datetime.datetime.now()
+
+    for year in years:
+        for race in races:
+            try:
+                session = fastf1.get_session(year, race, 'R')
+                if session.date > now:
+                    continue
+                    
+                session.load(telemetry=False, weather=True, messages=False)
+                
+                #('4' = SC, '5' = VSC, '6' = Red Flag)
+                statuses = session.track_status['Status'].astype(str).values
+                sc_occurred = any(code in statuses for code in ['4', '5', '6'])
+
+                sc_stats[race]['total_races'] += 1
+                if sc_occurred:
+                    sc_stats[race]['sc_count'] += 1
+
+            except Exception as e:
+                print(f"Skipping {year} {race}: {e}")
+                
+    for race, data in sc_stats.items():
+        total = data['total_races']
+        data['sc_probability'] = round((data['sc_count'] / total), 2) if total > 0 else 0.0
+
+    return sc_stats
