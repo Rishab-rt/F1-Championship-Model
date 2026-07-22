@@ -1,5 +1,5 @@
 .env
 __pycache__/
 *.pyc
-cache
+cache/
 f1_model.pkl
